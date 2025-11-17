@@ -37,7 +37,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container className="py-5">
+    <Container className="py-5" style={{ marginTop: '80px' }}>
       <Row className="justify-content-center">
         <Col md={6} lg={4}>
           <Card className="card-hover">

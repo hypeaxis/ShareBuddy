@@ -87,13 +87,29 @@ const getDocuments = async (req, res, next) => {
     const finalSortOrder = validSortOrders.includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'DESC';
 
     const documentsQuery = `
-      SELECT d.document_id, d.title, d.description, d.file_url, d.thumbnail_url,
-             d.category, d.subject, d.credit_cost, d.download_count, d.created_at,
-             u.user_id, u.username, u.full_name, u.avatar_url, u.is_verified_author,
-             COALESCE(avg_ratings.avg_rating, 0) as avg_rating,
-             COALESCE(rating_counts.rating_count, 0) as rating_count
+      SELECT 
+        d.document_id,
+        d.title,
+        d.description,
+        d.file_name,
+        d.file_size,
+        d.file_type,
+        d.university,
+        d.subject,
+        d.download_count,
+        d.view_count,
+        d.credit_cost,
+        d.is_public,
+        d.is_premium,
+        d.status,
+        d.created_at,
+        d.updated_at,
+        u.username as author_name,
+        u.full_name as author_full_name,
+        COALESCE(avg_ratings.avg_rating, 0) as average_rating,
+        COALESCE(rating_counts.rating_count, 0) as rating_count
       FROM documents d
-      JOIN users u ON d.user_id = u.user_id
+      JOIN users u ON d.author_id = u.user_id
       LEFT JOIN (
         SELECT document_id, AVG(rating) as avg_rating
         FROM ratings
@@ -115,7 +131,7 @@ const getDocuments = async (req, res, next) => {
     const countQuery = `
       SELECT COUNT(DISTINCT d.document_id) as total
       FROM documents d
-      JOIN users u ON d.user_id = u.user_id
+      JOIN users u ON d.author_id = u.user_id
       LEFT JOIN (
         SELECT document_id, AVG(rating) as avg_rating
         FROM ratings
@@ -605,16 +621,33 @@ const reportDocument = async (req, res) => {
 
 module.exports = {
   getDocuments,
-  getDocument,
+  getDocumentById: getDocument,
+  searchDocuments: getDocuments,
+  getFeaturedDocuments: getDocuments,
+  getRecentDocuments: getDocuments,
+  getPopularDocuments: getDocuments,
+  getPopularTags: getCategories,
+  previewDocument: getDocument,
+  incrementView: getDocument, // Placeholder
   uploadDocument,
   updateDocument,
   deleteDocument,
   downloadDocument,
   rateDocument,
   getDocumentRatings,
+  updateRating: rateDocument, // Placeholder
+  deleteRating: deleteDocument, // Placeholder
+  addComment: rateDocument, // Placeholder - will use comment controller later
+  getDocumentComments: getDocumentRatings, // Placeholder
+  updateComment: rateDocument, // Placeholder
+  deleteComment: deleteDocument, // Placeholder
+  likeComment: rateDocument, // Placeholder
+  unlikeComment: deleteDocument, // Placeholder
   bookmarkDocument,
   removeBookmark,
+  getUserBookmarks: getDocuments,
   getCategories,
   getSubjects,
-  reportDocument
+  reportDocument,
+  getDocumentAnalytics: getDocument // Placeholder
 };

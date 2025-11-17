@@ -54,7 +54,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Container className="py-5">
+    <Container className="py-5" style={{ marginTop: '80px' }}>
       <Row className="justify-content-center">
         <Col md={8} lg={6}>
           <Card className="card-hover">

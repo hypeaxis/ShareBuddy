@@ -5,7 +5,7 @@
 -- CREATE DATABASE sharebuddy_db;
 
 -- Connect to sharebuddy_db database
-\c sharebuddy_db;
+-- \c sharebuddy_db;
 
 -- Create extension for UUID generation
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

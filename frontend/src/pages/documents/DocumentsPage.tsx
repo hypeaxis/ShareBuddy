@@ -8,7 +8,7 @@ import DocumentList from '../../components/documents/DocumentList';
 
 const DocumentsPage: React.FC = () => {
   return (
-    <Container className="py-4">
+    <Container className="py-4" style={{ marginTop: '80px' }}>
       <DocumentList 
         title="Khám phá tài liệu"
         showFilters={true}

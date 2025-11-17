@@ -95,14 +95,20 @@ INSERT INTO credit_transactions (user_id, amount, transaction_type, reference_id
 -- Download costs
 ((SELECT user_id FROM users WHERE username = 'johndoe'), -1, 'download', (SELECT document_id FROM documents WHERE title = 'Toán rời rạc - Chương 3: Đồ thị'), 'Downloaded document'),
 ((SELECT user_id FROM users WHERE username = 'alicenguyen'), -2, 'download', (SELECT document_id FROM documents WHERE title = 'Lập trình hướng đối tượng với Java'), 'Downloaded document'),
-((SELECT user_id FROM users WHERE username = 'bobtran'), -1, 'download', (SELECT document_id FROM documents WHERE title = 'Cấu trúc dữ liệu và Giải thuật - Bài giảng 1'), 'Downloaded document'),
--- Comment bonuses
-((SELECT user_id FROM users WHERE username = 'johndoe'), 1, 'comment', (SELECT comment_id FROM comments WHERE content = 'Bài giảng rất hay và dễ hiểu! Cảm ơn tác giả đã chia sẻ.'), 'Bonus for helpful comment'),
+((SELECT user_id FROM users WHERE username = 'bobtran'), -1, 'download', (SELECT document_id FROM documents WHERE title = 'Cấu trúc dữ liệu và Giải thuật - Bài giảng 1'), 'Downloaded document');
+
+-- Insert comment and rating bonuses separately (since comment_id and rating_id are different types)
+INSERT INTO credit_transactions (user_id, amount, transaction_type, reference_id, description) VALUES
+((SELECT user_id FROM users WHERE username = 'johndoe'), 1, 'comment', (SELECT comment_id FROM comments WHERE content = 'Bài giảng rất hay và dễ hiểu! Cảm ơn tác giả đã chia sẻ.'), 'Bonus for helpful comment');
+
+INSERT INTO credit_transactions (user_id, amount, transaction_type, reference_id, description) VALUES  
 ((SELECT user_id FROM users WHERE username = 'alicenguyen'), 1, 'rating', (SELECT rating_id FROM ratings WHERE rating = 4 AND document_id = (SELECT document_id FROM documents WHERE title = 'Cấu trúc dữ liệu và Giải thuật - Bài giảng 1')), 'Bonus for rating document');
 
 -- Insert sample notifications
-INSERT INTO notifications (user_id, type, title, content, reference_id) VALUES
-((SELECT user_id FROM users WHERE username = 'janesmith'), 'new_follower', 'Bạn có người theo dõi mới!', 'John Doe đã bắt đầu theo dõi bạn.', (SELECT user_id FROM users WHERE username = 'johndoe')),
+INSERT INTO notifications (user_id, type, title, content, related_user_id) VALUES
+((SELECT user_id FROM users WHERE username = 'janesmith'), 'new_follower', 'Bạn có người theo dõi mới!', 'John Doe đã bắt đầu theo dõi bạn.', (SELECT user_id FROM users WHERE username = 'johndoe'));
+
+INSERT INTO notifications (user_id, type, title, content, related_document_id) VALUES
 ((SELECT user_id FROM users WHERE username = 'janesmith'), 'new_rating', 'Tài liệu của bạn nhận được đánh giá mới', 'Tài liệu "Cấu trúc dữ liệu và Giải thuật - Bài giảng 1" nhận được đánh giá 5 sao.', (SELECT document_id FROM documents WHERE title = 'Cấu trúc dữ liệu và Giải thuật - Bài giảng 1')),
 ((SELECT user_id FROM users WHERE username = 'johndoe'), 'new_document', 'Có tài liệu mới từ người bạn theo dõi', 'Jane Smith đã tải lên tài liệu mới: "Toán rời rạc - Chương 3: Đồ thị"', (SELECT document_id FROM documents WHERE title = 'Toán rời rạc - Chương 3: Đồ thị'));
 

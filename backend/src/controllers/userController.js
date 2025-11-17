@@ -500,13 +500,21 @@ const changePassword = async (req, res, next) => {
 };
 
 module.exports = {
-  getProfile,
-  updateProfile,
+  getUserProfile: getProfile,
+  getMyProfile: getProfile,
+  updateMyProfile: updateProfile,
   uploadAvatar,
+  deleteAvatar: uploadAvatar, // Placeholder - need to implement
   followUser,
   unfollowUser,
   getFollowers,
   getFollowing,
+  getUserStats: getProfile, // Placeholder - need to implement  
   getUserDocuments,
+  getMyDownloads: getUserDocuments, // Placeholder - need to implement
+  getMyBookmarks: getUserDocuments, // Placeholder - need to implement
+  getMyCredits: getProfile, // Placeholder - need to implement
+  getCreditHistory: getUserDocuments, // Placeholder - need to implement
+  searchUsers: getFollowers, // Placeholder - need to implement
   changePassword
 };

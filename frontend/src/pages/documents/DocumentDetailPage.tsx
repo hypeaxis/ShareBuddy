@@ -115,7 +115,7 @@ const DocumentDetailPage: React.FC = () => {
 
   if (error || !currentDocument) {
     return (
-      <Container className="py-4">
+      <Container className="py-4" style={{ marginTop: '80px' }}>
         <Alert variant="danger" className="text-center">
           <i className="bi bi-exclamation-triangle me-2" />
           {error || 'Không tìm thấy tài liệu'}
@@ -130,7 +130,7 @@ const DocumentDetailPage: React.FC = () => {
   }
 
   return (
-    <Container className="py-4">
+    <Container className="py-4" style={{ marginTop: '80px' }}>
       {/* Header */}
       <Row className="mb-4">
         <Col>
