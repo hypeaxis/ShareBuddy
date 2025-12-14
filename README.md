@@ -97,9 +97,3 @@ ShareBuddy/
 - `POST /api/documents/:id/ratings` - Đánh giá
 - `POST /api/documents/:id/comments` - Bình luận
 
-## Đóng góp
-1. Fork dự án
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit thay đổi (`git commit -m 'Add some AmazingFeature'`)
-4. Push lên branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request

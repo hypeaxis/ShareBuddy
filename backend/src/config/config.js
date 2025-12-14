@@ -39,18 +39,27 @@ const config = {
   ALLOWED_FILE_TYPES: process.env.ALLOWED_FILE_TYPES || 'pdf,doc,docx,ppt,pptx,xls,xlsx',
   ALLOWED_IMAGE_TYPES: process.env.ALLOWED_IMAGE_TYPES || 'jpg,jpeg,png,gif',
   
-  // OAuth configuration (placeholders)
+  // OAuth configuration
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
   FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID || '',
   FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET || '',
+  FACEBOOK_CALLBACK_URL: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:5000/api/auth/facebook/callback',
   
-  // Email configuration (placeholders)
-  SMTP_HOST: process.env.SMTP_HOST || '',
-  SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,
-  SMTP_USER: process.env.SMTP_USER || '',
-  SMTP_PASS: process.env.SMTP_PASS || '',
-  EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@sharebuddy.com',
+  // Email configuration (Nodemailer + Gmail)
+  EMAIL_USER: process.env.EMAIL_USER || '',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || '', // Gmail App Password
+  EMAIL_FROM: process.env.EMAIL_FROM || 'ShareBuddy <noreply@sharebuddy.com>',
+  
+  // Email verification
+  EMAIL_VERIFICATION_EXPIRES: process.env.EMAIL_VERIFICATION_EXPIRES || '24h', // 24 hours
+  PASSWORD_RESET_EXPIRES: process.env.PASSWORD_RESET_EXPIRES || '1h', // 1 hour
+  
+  // Stripe configuration
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+  STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
   
   // Rate limiting
   RATE_LIMIT_WINDOW: parseInt(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000, // 15 minutes
