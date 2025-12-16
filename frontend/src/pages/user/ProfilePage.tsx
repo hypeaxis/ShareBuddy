@@ -600,6 +600,7 @@ const ProfilePage: React.FC = () => {
         <Tab eventKey="documents" title="📚 Tài liệu">
           <Card>
             <Card.Header className="d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">Tài liệu đã tải lên ({userDocuments.length})</h6>
               <div className="d-flex gap-2 align-items-center">
                 {isOwnProfile && userDocuments.length > 0 && (
                   <Form.Select 
@@ -620,13 +621,27 @@ const ProfilePage: React.FC = () => {
                     Tải lên mới
                   </Button>
                 )}
-              </div>n>
-              ) : null}
+              </div>
             </Card.Header>
             <Card.Body>
               {documentsLoading ? (
                 <div className="text-center py-4">
-                  <Spinner ani
+                  <Spinner animation="border" variant="primary" size="sm" />
+                  <p className="mt-2 text-muted small">Đang tải tài liệu...</p>
+                </div>
+              ) : userDocuments.length === 0 ? (
+                <div className="text-center py-4">
+                  <FaFileAlt size={48} className="text-muted mb-3" />
+                  <p className="text-muted">Chưa có tài liệu nào</p>
+                  {isOwnProfile && (
+                    <Button variant="primary" size="sm" onClick={() => navigate('/upload')}>
+                      Tải lên tài liệu đầu tiên
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Row>
+                {userDocuments
                   .filter(doc => {
                     if (!isOwnProfile) return doc.status === 'approved'; // Only show approved for others
                     if (statusFilter === 'all') return true;
@@ -648,22 +663,7 @@ const ProfilePage: React.FC = () => {
                                   status={doc.status as 'pending' | 'approved' | 'rejected'} 
                                   size="sm"
                                 />
-                              </div
-                </div>
-              ) : (
-                <Row>
-                {userDocuments.map((doc) => (
-                  <Col md={6} lg={4} key={doc.id} className="mb-4">
-                    <Card className="h-100 border-0 shadow-sm">
-                      <Card.Body>
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h6 className="mb-0 flex-grow-1">{doc.title}</h6>
-                          <div className="d-flex gap-1 flex-shrink-0">
-                            {doc.isPremium && (
-                              <Badge bg="warning" className="ms-1">Premium</Badge>
-                            )}
-                            {isOwnProfile && doc.status === 'rejected' && (
-                              <Badge bg="danger" className="ms-1">Bị từ chối</Badge>
+                              </div>
                             )}
                           </div>
                         </div>
