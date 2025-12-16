@@ -41,12 +41,19 @@ passport.use(new GoogleStrategy({
   scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    console.log('🔵 Google OAuth Strategy - Processing user profile');
+    
     const email = profile.emails[0].value;
     const googleId = profile.id;
     const fullName = profile.displayName;
     const avatar = profile.photos[0]?.value;
 
+    console.log('📧 Email:', email);
+    console.log('🆔 Google ID:', googleId);
+    console.log('👤 Name:', fullName);
+
     // Check if user exists with this Google ID
+    console.log('🔍 Checking if user exists with Google ID...');
     let result = await query(
       'SELECT * FROM users WHERE google_id = $1',
       [googleId]
@@ -55,6 +62,7 @@ passport.use(new GoogleStrategy({
     if (result.rows.length > 0) {
       // User exists with Google ID - login
       const user = result.rows[0];
+      console.log('✅ Found existing user with Google ID:', user.user_id);
       
       // Update OAuth token if needed
       await query(
@@ -65,10 +73,12 @@ passport.use(new GoogleStrategy({
         [user.user_id, 'google', accessToken, refreshToken]
       );
       
+      console.log('✅ OAuth token updated for user:', user.user_id);
       return done(null, user);
     }
 
     // Check if user exists with this email
+    console.log('🔍 Checking if user exists with email...');
     result = await query(
       'SELECT * FROM users WHERE email = $1',
       [email]
@@ -77,6 +87,7 @@ passport.use(new GoogleStrategy({
     if (result.rows.length > 0) {
       // User exists with email - link Google account
       const user = result.rows[0];
+      console.log('✅ Found existing user with email, linking Google ID:', user.user_id);
       
       await query(
         'UPDATE users SET google_id = $1 WHERE user_id = $2',
@@ -92,10 +103,12 @@ passport.use(new GoogleStrategy({
         [user.user_id, 'google', accessToken, refreshToken]
       );
       
+      console.log('✅ Google account linked to existing user:', user.user_id);
       return done(null, user);
     }
 
     // Create new user
+    console.log('👤 Creating new user...');
     const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
     
     result = await query(
@@ -106,6 +119,7 @@ passport.use(new GoogleStrategy({
     );
 
     const newUser = result.rows[0];
+    console.log('✅ New user created:', newUser.user_id);
 
     // Create welcome credit transaction
     await query(
@@ -113,6 +127,7 @@ passport.use(new GoogleStrategy({
        VALUES ($1, $2, $3, $4)`,
       [newUser.user_id, 10, 'bonus', 'Chào mừng thành viên mới - Bonus 10 credits']
     );
+    console.log('✅ Welcome bonus credit added');
 
     // Store OAuth token
     await query(
@@ -120,10 +135,13 @@ passport.use(new GoogleStrategy({
        VALUES ($1, $2, $3, $4)`,
       [newUser.user_id, 'google', accessToken, refreshToken]
     );
+    console.log('✅ OAuth token stored');
 
+    console.log('✅ Google OAuth Strategy - User ready:', newUser.user_id);
     return done(null, newUser);
   } catch (error) {
-    console.error('Google OAuth error:', error);
+    console.error('❌ Google OAuth error:', error);
+    console.error('Error stack:', error.stack);
     return done(error, null);
   }
 }));

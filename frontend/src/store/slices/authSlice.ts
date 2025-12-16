@@ -68,8 +68,19 @@ export const logoutUser = createAsyncThunk(
 
 export const getCurrentUser = createAsyncThunk(
   'auth/getCurrentUser',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      // Check if we already have fresh user data (fetched within last 5 seconds)
+      const state = getState() as any;
+      const lastFetch = state.auth.lastUserFetch;
+      const now = Date.now();
+      
+      if (lastFetch && (now - lastFetch) < 5000) {
+        console.log('⚡ Skipping redundant user fetch (last fetch was', Math.round((now - lastFetch) / 1000), 'seconds ago)');
+        return state.auth.user; // Return cached user
+      }
+      
+      console.log('🔄 Fetching user data from server...');
       const response = await authService.getProfile();
       // Backend returns data.user, so we need to extract the user object
       return (response.data as any)?.user || response.data;
@@ -109,6 +120,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  lastUserFetch: number | null; // Timestamp of last user fetch
 }
 
 const initialState: AuthState = {
@@ -117,6 +129,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isAuthenticated: tokenService.isAuthenticated(),
+  lastUserFetch: null,
 };
 
 const authSlice = createSlice({
@@ -201,6 +214,9 @@ const authSlice = createSlice({
         if (action.payload) {
           state.user = action.payload;
           state.isAuthenticated = true;
+          state.lastUserFetch = Date.now(); // Update timestamp
+          // Save user to localStorage
+          tokenService.setUser(action.payload);
         }
         state.error = null;
       })
@@ -210,6 +226,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        state.lastUserFetch = null;
       });
 
     // Update profile

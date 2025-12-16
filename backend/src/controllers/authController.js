@@ -451,21 +451,31 @@ const googleCallback = async (req, res, next) => {
   const passport = require('passport');
   require('../config/passport');
   
+  console.log('🔵 Google OAuth Callback - Start processing');
+  
   passport.authenticate('google', {
     session: false,
     failureRedirect: `${config.FRONTEND_URL}/login?error=google_auth_failed`
   }, (err, user, info) => {
+    console.log('🔵 Google OAuth Callback - Passport authentication result');
+    console.log('Error:', err ? err.message : 'None');
+    console.log('User:', user ? user.user_id : 'None');
+    console.log('Info:', info);
+    
     if (err) {
-      console.error('Google OAuth error:', err);
+      console.error('❌ Google OAuth error:', err);
       return res.redirect(`${config.FRONTEND_URL}/login?error=google_auth_error`);
     }
     
     if (!user) {
+      console.error('❌ Google OAuth no user returned');
       return res.redirect(`${config.FRONTEND_URL}/login?error=google_no_user`);
     }
     
     // Generate JWT token
     const token = generateToken(user.user_id);
+    console.log('✅ Google OAuth success - Token generated for user:', user.user_id);
+    console.log('Redirecting to:', `${config.FRONTEND_URL}/oauth-success?token=${token.substring(0, 20)}...`);
     
     // Redirect to frontend with token
     res.redirect(`${config.FRONTEND_URL}/oauth-success?token=${token}`);

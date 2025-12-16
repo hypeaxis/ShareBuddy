@@ -19,7 +19,14 @@ const OAuthSuccessPage: React.FC = () => {
       const token = searchParams.get('token');
       const errorParam = searchParams.get('error');
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 OAuth Success Page - Processing OAuth callback');
+        console.log('Token received:', token ? 'Yes' : 'No');
+        console.log('Error param:', errorParam);
+      }
+
       if (errorParam) {
+        console.error('❌ OAuth error parameter:', errorParam);
         setError('Đăng nhập thất bại. Vui lòng thử lại.');
         setProcessingAuth(false);
         setTimeout(() => navigate('/login'), 3000);
@@ -27,6 +34,7 @@ const OAuthSuccessPage: React.FC = () => {
       }
 
       if (!token) {
+        console.error('❌ No token received from OAuth callback');
         setError('Token không hợp lệ');
         setProcessingAuth(false);
         setTimeout(() => navigate('/login'), 3000);
@@ -35,33 +43,55 @@ const OAuthSuccessPage: React.FC = () => {
 
       try {
         // Save token to localStorage
-        console.log('💾 Saving OAuth token to localStorage');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('💾 Saving OAuth token to localStorage');
+        }
         localStorage.setItem('sharebuddy_token', token);
         
-        // Refresh user data with new token
-        console.log('🔄 Fetching user data from server...');
-        await refreshUser();
+        // Add a small delay to ensure localStorage is written
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        console.log('✅ OAuth authentication complete');
+        // Refresh user data with new token
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 Fetching user data from server...');
+        }
+        const result = await refreshUser();
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📦 User fetch result:', result);
+        }
+        
+        // Check if user fetch was successful
+        if (result.type === 'auth/getCurrentUser/fulfilled') {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ User data loaded successfully');
+            console.log('🚀 Redirecting to dashboard...');
+          }
+          setProcessingAuth(false);
+          
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 500);
+        } else {
+          console.error('❌ Failed to fetch user data:', result);
+          throw new Error('Failed to fetch user data');
+        }
+      } catch (err: any) {
+        console.error('❌ OAuth processing error:', err);
+        console.error('Error details:', err.message || err);
+        setError('Không thể tải thông tin người dùng. Vui lòng thử đăng nhập lại.');
         setProcessingAuth(false);
-      } catch (err) {
-        console.error('❌ OAuth error:', err);
-        setError('Không thể tải thông tin người dùng');
-        setProcessingAuth(false);
+        
+        // Clear the invalid token
+        localStorage.removeItem('sharebuddy_token');
+        
         setTimeout(() => navigate('/login'), 3000);
       }
     };
 
     processOAuth();
   }, [searchParams, navigate, refreshUser]);
-
-  // Redirect to dashboard once user is loaded
-  useEffect(() => {
-    if (!processingAuth && !isLoading && user?.id && user.id !== 'undefined') {
-      console.log('🚀 Redirecting to dashboard with user:', user.id);
-      setTimeout(() => navigate('/dashboard'), 500);
-    }
-  }, [processingAuth, isLoading, user, navigate]);
 
   return (
     <Container className="py-5" style={{ marginTop: '80px' }}>
