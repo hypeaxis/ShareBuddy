@@ -4,7 +4,6 @@
  */
 
 const { query, withTransaction } = require('../config/database');
-const logger = require('../utils/logger');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -19,7 +18,7 @@ const receiveModerationResult = async (req, res, next) => {
     const expectedSecret = process.env.MODERATION_WEBHOOK_SECRET || 'default-webhook-secret-change-in-production';
     
     if (webhookSecret !== expectedSecret) {
-      logger.warn('Invalid webhook secret received');
+      console.warn('Invalid webhook secret received');
       return res.status(401).json({
         success: false,
         error: 'Unauthorized'
@@ -36,7 +35,7 @@ const receiveModerationResult = async (req, res, next) => {
       error_message
     } = req.body;
 
-    logger.info(`Received moderation result for document ${document_id}:`, {
+    console.log(`Received moderation result for document ${document_id}:`, {
       status: moderation_status,
       score: moderation_score
     });
@@ -90,7 +89,7 @@ const receiveModerationResult = async (req, res, next) => {
       }
     });
 
-    logger.info(`✓ Moderation result processed for document ${document_id}`);
+    console.log(`✓ Moderation result processed for document ${document_id}`);
 
     res.json({
       success: true,
@@ -98,7 +97,7 @@ const receiveModerationResult = async (req, res, next) => {
     });
 
   } catch (error) {
-    logger.error('Error processing moderation webhook:', error);
+    console.error('Error processing moderation webhook:', error);
     next(error);
   }
 };
@@ -135,10 +134,10 @@ async function moveFileToPermanentStorage(document_id) {
       [newFilePath, document_id]
     );
 
-    logger.info(`File moved to permanent storage for document ${document_id}`);
+    console.log(`File moved to permanent storage for document ${document_id}`);
 
   } catch (error) {
-    logger.error(`Failed to move file for document ${document_id}:`, error);
+    console.error(`Failed to move file for document ${document_id}:`, error);
     // Don't throw - file move failure shouldn't block the webhook
   }
 }
@@ -164,14 +163,14 @@ async function deleteTempFile(document_id) {
     // Delete file if exists
     try {
       await fs.unlink(tempPath);
-      logger.info(`Temp file deleted for rejected document ${document_id}`);
+      console.log(`Temp file deleted for rejected document ${document_id}`);
     } catch (err) {
       // File might already be deleted or not exist
-      logger.debug(`Temp file not found for document ${document_id}`);
+      console.log(`Temp file not found for document ${document_id}`);
     }
 
   } catch (error) {
-    logger.error(`Failed to delete temp file for document ${document_id}:`, error);
+    console.error(`Failed to delete temp file for document ${document_id}:`, error);
   }
 }
 

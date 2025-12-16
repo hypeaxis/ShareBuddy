@@ -4,7 +4,6 @@
  */
 
 const Queue = require('bull');
-const logger = require('../utils/logger');
 
 let moderationQueue = null;
 
@@ -43,18 +42,18 @@ function initQueue() {
 
     // Queue event handlers
     moderationQueue.on('error', (error) => {
-      logger.error('Moderation queue error:', error);
+      console.error('Moderation queue error:', error);
     });
 
     moderationQueue.on('waiting', (jobId) => {
-      logger.debug(`Job ${jobId} is waiting in queue`);
+      console.log(`Job ${jobId} is waiting in queue`);
     });
 
-    logger.info('Moderation queue initialized successfully');
+    console.log('Moderation queue initialized successfully');
     return moderationQueue;
 
   } catch (error) {
-    logger.error('Failed to initialize moderation queue:', error);
+    console.error('Failed to initialize moderation queue:', error);
     throw error;
   }
 }
@@ -73,11 +72,11 @@ async function addModerationJob(jobData) {
       priority: 1 // Normal priority
     });
 
-    logger.info(`Moderation job created for document ${jobData.document_id}`);
+    console.log(`Moderation job created for document ${jobData.document_id}`);
     return job;
 
   } catch (error) {
-    logger.error('Failed to add moderation job:', error);
+    console.error('Failed to add moderation job:', error);
     throw new Error(`Failed to queue moderation job: ${error.message}`);
   }
 }
@@ -116,7 +115,7 @@ async function getQueueStats() {
       total: waiting + active + delayed
     };
   } catch (error) {
-    logger.error('Failed to get queue stats:', error);
+    console.error('Failed to get queue stats:', error);
     return null;
   }
 }
@@ -128,7 +127,7 @@ async function closeQueue() {
   if (moderationQueue) {
     await moderationQueue.close();
     moderationQueue = null;
-    logger.info('Moderation queue closed');
+    console.log('Moderation queue closed');
   }
 }
 
