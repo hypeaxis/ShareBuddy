@@ -69,5 +69,3 @@ temp/
 # Editor backup files
 *~
 *.bak
-backend/package-lock.json
-frontend/package-lock.json
