@@ -127,8 +127,8 @@ BEGIN
         SET 
             -- Update status first - this is what backend queries check
             status = CASE 
-                WHEN NEW.moderation_score > 0.5 THEN 'approved'
-                ELSE 'rejected'
+                WHEN NEW.moderation_score > 0.5 THEN 'approved'::document_status
+                ELSE 'rejected'::document_status
             END,
             -- Cache moderation data for display/analytics
             moderation_score = NEW.moderation_score,
