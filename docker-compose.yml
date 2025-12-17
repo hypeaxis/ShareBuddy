@@ -55,6 +55,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MODERATION_SERVICE_URL=http://moderation-service:5002
+      - MODERATION_WEBHOOK_SECRET=${MODERATION_WEBHOOK_SECRET:-default-webhook-secret-change-in-production}
     volumes:
       - backend-uploads:/app/uploads
       - upload-temp:/app/uploads/temp
