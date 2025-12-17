@@ -27,6 +27,18 @@ async function loadToxicityModel() {
 
 async function analyzeToxicity(text) {
   try {
+    // Temporarily disabled due to TensorFlow compatibility issues with CPU
+    // TODO: Fix TensorFlow.js compatibility or use alternative solution
+    logger.warn('AI toxicity detection disabled - using rule-based analysis only');
+    
+    // Return neutral score (rules-based analysis will determine final score)
+    return {
+      score: 0.8, // Neutral - let rules decide
+      flags: {},
+      model_version: 'disabled'
+    };
+    
+    /* ORIGINAL CODE - Disabled due to forwardFunc_1 error
     const model = await loadToxicityModel();
     
     // Truncate text if too long (model has limits)
@@ -63,14 +75,19 @@ async function analyzeToxicity(text) {
       score = 1.0 - (avgToxicity * 0.8); // Scale down max penalty to 0.8
     }
 
-    return {
-      score: Math.max(0, Math.min(1, score)),
-      flags
     };
+    */
 
   } catch (error) {
     logger.error('Toxicity analysis error:', error);
     // Return neutral score on error
+    return {
+      score: 0.8,
+      flags: {},
+      model_version: 'error'
+    };
+  }
+}
     return {
       score: 0.7,
       flags: { error: true, message: error.message }
