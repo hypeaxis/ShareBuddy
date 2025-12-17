@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     wget \
+    libc6 \
+    libgcc1 \
+    libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
