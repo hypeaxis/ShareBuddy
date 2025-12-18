@@ -3,14 +3,15 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, Tab, Tabs, Badge, Alert, Image, Modal, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Form, Tab, Tabs, Badge, Alert, Image, Modal, Spinner, Table, ProgressBar } from 'react-bootstrap';
 import { 
   FaEdit, FaSave, FaTimes, FaCamera, FaUniversity, FaGraduationCap, 
   FaCalendarAlt, FaFileAlt, FaDownload, FaStar, 
-  FaUserPlus, FaUserCheck, FaShare, FaCog, FaEye, FaCoins 
+  FaUserPlus, FaUserCheck, FaShare, FaCog, FaEye, FaCoins, FaTrophy, FaChartLine 
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
+import { creditService } from '../../services/creditService';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ModerationStatusBadge from '../../components/ModerationStatusBadge';
 
@@ -70,6 +71,8 @@ const ProfilePage: React.FC = () => {
   const [userDocuments, setUserDocuments] = useState<UserDocument[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [creditHistory, setCreditHistory] = useState<any[]>([]);
+  const [creditsLoading, setCreditsLoading] = useState(false);
 
   // Check if viewing own profile
   const isOwnProfile = currentUser?.id === profile?.id;
@@ -185,6 +188,35 @@ const ProfilePage: React.FC = () => {
 
     loadDocuments();
   }, [activeTab, profile?.id]);
+
+  // Load credit history when switching to credits tab
+  useEffect(() => {
+    const loadCreditHistory = async () => {
+      if (activeTab === 'credits' && isOwnProfile) {
+        try {
+          setCreditsLoading(true);
+          const response = await creditService.getTransactionHistory(1, 20);
+          if (response.success && response.data) {
+            const transactions = response.data.transactions || [];
+            setCreditHistory(transactions.map((t: any) => ({
+              id: t.id,
+              amount: t.amount,
+              type: t.type === 'earn' ? 'earn' : t.type === 'bonus' ? 'bonus' : 'spend',
+              description: t.description || t.reason || 'Giao dịch',
+              date: t.createdAt || t.created_at,
+              relatedDocument: t.documentTitle || t.document_title
+            })));
+          }
+        } catch (err) {
+          console.error('❌ Error loading credit history:', err);
+        } finally {
+          setCreditsLoading(false);
+        }
+      }
+    };
+
+    loadCreditHistory();
+  }, [activeTab, isOwnProfile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -445,31 +477,71 @@ const ProfilePage: React.FC = () => {
             </Col>
           </Row>
 
-          {/* Stats */}
-          <Row className="mt-3">
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.stats.documentsUploaded}</h5>
-              <small className="text-muted">Tài liệu</small>
+          {/* Stats - Colorful Cards with Icons */}
+          <Row className="mt-4 g-3">
+            <Col xs={6} md={3}>
+              <Card className="border-0 shadow-sm h-100">
+                <Card.Body className="text-center">
+                  <FaFileAlt size={28} className="text-primary mb-2" />
+                  <h4 className="mb-1">{profile.stats.documentsUploaded}</h4>
+                  <small className="text-muted">Tài liệu</small>
+                </Card.Body>
+              </Card>
             </Col>
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.stats.totalDownloads}</h5>
-              <small className="text-muted">Lượt tải</small>
+            <Col xs={6} md={3}>
+              <Card className="border-0 shadow-sm h-100">
+                <Card.Body className="text-center">
+                  <FaDownload size={28} className="text-success mb-2" />
+                  <h4 className="mb-1">{profile.stats.totalDownloads}</h4>
+                  <small className="text-muted">Lượt tải</small>
+                </Card.Body>
+              </Card>
             </Col>
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.stats.totalViews}</h5>
-              <small className="text-muted">Lượt xem</small>
+            <Col xs={6} md={3}>
+              <Card className="border-0 shadow-sm h-100">
+                <Card.Body className="text-center">
+                  <FaEye size={28} className="text-info mb-2" />
+                  <h4 className="mb-1">{profile.stats.totalViews}</h4>
+                  <small className="text-muted">Lượt xem</small>
+                </Card.Body>
+              </Card>
             </Col>
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.stats.averageRating}/5</h5>
-              <small className="text-muted">Đánh giá</small>
+            <Col xs={6} md={3}>
+              <Card className="border-0 shadow-sm h-100">
+                <Card.Body className="text-center">
+                  <FaStar size={28} className="text-warning mb-2" />
+                  <h4 className="mb-1">{profile.stats.averageRating.toFixed(1)}/5</h4>
+                  <small className="text-muted">Đánh giá</small>
+                </Card.Body>
+              </Card>
             </Col>
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.stats.followers}</h5>
-              <small className="text-muted">Theo dõi</small>
+          </Row>
+
+          {/* Social Stats */}
+          <Row className="mt-3 g-3">
+            <Col md={6}>
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="d-flex justify-content-around text-center">
+                  <div>
+                    <h5 className="mb-1">{profile.stats.followers}</h5>
+                    <small className="text-muted">Người theo dõi</small>
+                  </div>
+                  <div className="border-start"></div>
+                  <div>
+                    <h5 className="mb-1">{profile.stats.following}</h5>
+                    <small className="text-muted">Đang theo dõi</small>
+                  </div>
+                </Card.Body>
+              </Card>
             </Col>
-            <Col className="text-center">
-              <h5 className="mb-0">{profile.credits}</h5>
-              <small className="text-muted">Credits</small>
+            <Col md={6}>
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="text-center">
+                  <FaCoins size={24} className="text-warning mb-2" />
+                  <h5 className="mb-1">{profile.credits} Credits</h5>
+                  <small className="text-muted">Số dư hiện tại</small>
+                </Card.Body>
+              </Card>
             </Col>
           </Row>
         </Card.Body>
@@ -688,6 +760,103 @@ const ProfilePage: React.FC = () => {
             </Card.Body>
           </Card>
         </Tab>
+
+        {isOwnProfile && (
+          <Tab eventKey="credits" title="💰 Lịch sử Credits">
+            <Card>
+              <Card.Header>
+                <h6 className="mb-0 d-flex align-items-center justify-content-between">
+                  <span>
+                    <FaCoins className="me-2 text-warning" />
+                    Giao dịch Credits
+                  </span>
+                  <Badge bg="primary">{profile?.credits || 0} Credits</Badge>
+                </h6>
+              </Card.Header>
+              <Card.Body className="p-0">
+                {creditsLoading ? (
+                  <div className="text-center py-4">
+                    <Spinner animation="border" variant="primary" size="sm" />
+                    <p className="mt-2 text-muted">Đang tải lịch sử giao dịch...</p>
+                  </div>
+                ) : creditHistory.length === 0 ? (
+                  <div className="text-center py-5">
+                    <FaCoins size={48} className="text-muted mb-3" />
+                    <p className="text-muted">Chưa có giao dịch nào</p>
+                  </div>
+                ) : (
+                  <Table responsive hover className="mb-0">
+                    <thead className="bg-light">
+                      <tr>
+                        <th style={{ width: '60px' }} className="text-center">Loại</th>
+                        <th>Mô tả</th>
+                        <th style={{ width: '120px' }} className="text-end">Số lượng</th>
+                        <th style={{ width: '150px' }}>Ngày</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {creditHistory.map((transaction) => (
+                        <tr key={transaction.id}>
+                          <td className="text-center">
+                            {transaction.type === 'earn' && <FaCoins className="text-success" size={20} />}
+                            {transaction.type === 'spend' && <FaDownload className="text-danger" size={20} />}
+                            {transaction.type === 'bonus' && <FaTrophy className="text-warning" size={20} />}
+                          </td>
+                          <td>
+                            <div>{transaction.description}</div>
+                            {transaction.relatedDocument && (
+                              <small className="text-muted">{transaction.relatedDocument}</small>
+                            )}
+                          </td>
+                          <td className="text-end">
+                            <span className={`fw-bold ${
+                              transaction.amount > 0 ? 'text-success' : 'text-danger'
+                            }`}>
+                              {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                            </span>
+                          </td>
+                          <td>{new Date(transaction.date).toLocaleDateString('vi-VN')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Card.Body>
+            </Card>
+
+            {/* How to earn credits info */}
+            <Card className="mt-4">
+              <Card.Header>
+                <h6 className="mb-0">💡 Cách kiếm Credits</h6>
+              </Card.Header>
+              <Card.Body>
+                <Row>
+                  <Col md={4} className="text-center mb-3">
+                    <FaFileAlt size={32} className="text-primary mb-2" />
+                    <h6>Tải lên tài liệu</h6>
+                    <p className="text-muted small mb-0">Mỗi tài liệu được duyệt: +5 credits</p>
+                  </Col>
+                  <Col md={4} className="text-center mb-3">
+                    <FaDownload size={32} className="text-success mb-2" />
+                    <h6>Tài liệu được tải</h6>
+                    <p className="text-muted small mb-0">Mỗi lượt tải: +1 credit</p>
+                  </Col>
+                  <Col md={4} className="text-center mb-3">
+                    <FaStar size={32} className="text-warning mb-2" />
+                    <h6>Đánh giá cao</h6>
+                    <p className="text-muted small mb-0">Đánh giá 5 sao: +2 credits</p>
+                  </Col>
+                </Row>
+                <div className="text-center mt-3">
+                  <Button variant="primary" onClick={() => navigate('/purchase-credits')}>
+                    <FaCoins className="me-2" />
+                    Mua thêm Credits
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Tab>
+        )}
 
         {isOwnProfile && (
           <Tab eventKey="settings" title="⚙️ Cài đặt">

@@ -65,13 +65,13 @@ const OAuthSuccessPage: React.FC = () => {
         if (result.type === 'auth/getCurrentUser/fulfilled') {
           if (process.env.NODE_ENV === 'development') {
             console.log('✅ User data loaded successfully');
-            console.log('🚀 Redirecting to dashboard...');
+            console.log('🚀 Redirecting to profile...');
           }
           setProcessingAuth(false);
           
-          // Redirect to dashboard after a short delay
+          // Redirect to profile after a short delay
           setTimeout(() => {
-            navigate('/dashboard', { replace: true });
+            navigate('/profile', { replace: true });
           }, 500);
         } else {
           console.error('❌ Failed to fetch user data:', result);
@@ -108,7 +108,7 @@ const OAuthSuccessPage: React.FC = () => {
             <p className="text-muted">
               {processingAuth || isLoading 
                 ? 'Đang tải thông tin người dùng...' 
-                : 'Chuyển hướng đến dashboard...'}
+                : 'Chuyển hướng đến hồ sơ...'}
             </p>
           </>
         )}

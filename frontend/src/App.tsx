@@ -30,7 +30,6 @@ import DocumentDetailPage from './pages/documents/DocumentDetailPage';
 import DocumentsPage from './pages/documents/DocumentsPage';
 import UploadPage from './pages/documents/UploadPage';
 import ProfilePage from './pages/user/ProfilePage';
-import DashboardPage from './pages/user/DashboardPage';
 import AdminPage from './pages/admin/AdminPage';
 import QuestionDetailPage from './pages/QuestionDetailPage';
 import VerifiedAuthorsPage from './pages/VerifiedAuthorsPage';
@@ -86,13 +85,13 @@ const AppContent: React.FC = () => {
               <Route 
                 path="/login" 
                 element={
-                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+                  isAuthenticated ? <Navigate to="/profile" replace /> : <LoginPage />
                 } 
               />
               <Route 
                 path="/register" 
                 element={
-                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+                  isAuthenticated ? <Navigate to="/profile" replace /> : <RegisterPage />
                 } 
               />
               <Route path="/oauth-success" element={<OAuthSuccessPage />} />
@@ -102,7 +101,7 @@ const AppContent: React.FC = () => {
               
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
                 <Route path="/upload" element={<UploadPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/profile/:userId" element={<ProfilePage />} />

@@ -178,7 +178,7 @@ const PurchaseCreditsPage: React.FC = () => {
     setShowCheckout(false);
     setSelectedPackage(null);
     alert('Payment successful! Your credits have been added.');
-    navigate('/dashboard');
+    navigate('/profile');
   };
 
   if (loading) {

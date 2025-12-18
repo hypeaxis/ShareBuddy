@@ -66,8 +66,8 @@ const Navbar: React.FC = () => {
                 <Nav.Link as={Link} to="/upload" className="mb-2 mb-lg-0">
                   Tải lên
                 </Nav.Link>
-                <Nav.Link as={Link} to="/dashboard" className="mb-2 mb-lg-0">
-                  Dashboard
+                <Nav.Link as={Link} to="/profile" className="mb-2 mb-lg-0">
+                  Hồ sơ
                 </Nav.Link>
                 <div className="d-flex align-items-center flex-wrap gap-2">
                   <div className="d-flex align-items-center">

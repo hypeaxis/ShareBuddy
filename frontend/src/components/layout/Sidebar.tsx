@@ -51,11 +51,11 @@ const Sidebar: React.FC = () => {
             <Nav.Item>
               <Nav.Link
                 as={Link}
-                to="/dashboard"
-                className={isActive('/dashboard') ? 'active' : ''}
+                to="/profile"
+                className={isActive('/profile') ? 'active' : ''}
               >
-                <i className="bi bi-speedometer2 me-2"></i>
-                Dashboard
+                <i className="bi bi-person me-2"></i>
+                Hồ sơ cá nhân
               </Nav.Link>
             </Nav.Item>
 
@@ -67,17 +67,6 @@ const Sidebar: React.FC = () => {
               >
                 <i className="bi bi-cloud-upload me-2"></i>
                 Tải lên tài liệu
-              </Nav.Link>
-            </Nav.Item>
-
-            <Nav.Item>
-              <Nav.Link
-                as={Link}
-                to="/profile"
-                className={isActive('/profile') ? 'active' : ''}
-              >
-                <i className="bi bi-person me-2"></i>
-                Hồ sơ cá nhân
               </Nav.Link>
             </Nav.Item>
 
