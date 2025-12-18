@@ -39,12 +39,17 @@ async function analyzeDocument(filePath, metadata) {
     // Step 3: AI toxicity analysis (slower but more accurate)
     let aiScore = 0.85; // Default neutral score
     let toxicityFlags = {};
+    let aiEnabled = false;
 
     if (extractedText.trim().length >= 10) {
       try {
         const toxicityResult = await analyzeToxicity(extractedText);
         aiScore = toxicityResult.score;
         toxicityFlags = toxicityResult.flags;
+        
+        // Check if AI is actually enabled (not returning disabled/error status)
+        aiEnabled = toxicityResult.model_version !== 'disabled' && 
+                    toxicityResult.model_version !== 'error';
       } catch (aiError) {
         logger.error('AI analysis failed, using rule-based only:', aiError);
       }
@@ -52,18 +57,31 @@ async function analyzeDocument(filePath, metadata) {
 
     // Step 4: Combine scores (weighted average)
     const ruleScore = ruleChecks.score;
-    const finalScore = (aiScore * 0.7) + (ruleScore * 0.3); // AI has more weight
+    let finalScore;
+    let modelVersion;
+    
+    if (aiEnabled) {
+      // AI is working - use hybrid scoring
+      finalScore = (aiScore * 0.7) + (ruleScore * 0.3);
+      modelVersion = 'tensorflow-toxicity-v1+rules-v1';
+    } else {
+      // AI is disabled - use 100% rule-based scoring
+      finalScore = ruleScore;
+      modelVersion = 'rule-based-v1';
+      logger.info('Using 100% rule-based scoring (AI disabled)');
+    }
 
     return {
       score: Math.max(0, Math.min(1, finalScore)), // Clamp to [0, 1]
       flags: {
         ...ruleChecks.flags,
         ...toxicityFlags,
-        ai_score: aiScore,
-        rule_score: ruleScore
+        ai_score: aiEnabled ? aiScore : null,
+        rule_score: ruleScore,
+        ai_enabled: aiEnabled
       },
       extractedText,
-      modelVersion: 'tensorflow-toxicity-v1+rules-v1'
+      modelVersion
     };
 
   } catch (error) {
