@@ -386,10 +386,68 @@ const sendVerifiedAuthorNotification = async (userEmail, username, isApproved, r
   }
 };
 
+// Send general notification email
+const sendNotificationEmail = async (userEmail, username, title, message, link = null) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"ShareBuddy" <${config.EMAIL_USER}>`,
+      to: userEmail,
+      subject: `${title} - ShareBuddy`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📚 ShareBuddy</h1>
+              <p>${title}</p>
+            </div>
+            <div class="content">
+              <h2>Xin chào ${username}!</h2>
+              <p>${message}</p>
+              ${link ? `
+                <div style="text-align: center;">
+                  <a href="${config.FRONTEND_URL}${link}" class="button">Xem chi tiết</a>
+                </div>
+              ` : ''}
+            </div>
+            <div class="footer">
+              <p>&copy; 2025 ShareBuddy. All rights reserved.</p>
+              <p>Bạn nhận được email này vì đã bật thông báo email trong cài đặt.</p>
+              <p><a href="${config.FRONTEND_URL}/profile">Quản lý cài đặt thông báo</a></p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Notification email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending notification email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
   sendPaymentConfirmationEmail,
-  sendVerifiedAuthorNotification
+  sendVerifiedAuthorNotification,
+  sendNotificationEmail
 };

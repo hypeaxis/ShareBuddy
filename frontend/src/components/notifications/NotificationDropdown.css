@@ -1,0 +1,35 @@
+/* NotificationDropdown Styles */
+
+.notification-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.notification-menu {
+  max-height: 600px;
+}
+
+.notification-item {
+  transition: background-color 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.notification-item:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+  background-color: #e7f3ff;
+  border-left-color: #0d6efd;
+}
+
+.notification-item.unread:hover {
+  background-color: #d0e7ff;
+}
+
+.notification-title {
+  font-weight: 600;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+}

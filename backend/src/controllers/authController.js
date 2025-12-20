@@ -184,7 +184,8 @@ const getMe = async (req, res, next) => {
   try {
     const result = await query(
       `SELECT user_id, email, username, full_name, bio, university, major, 
-              role, credits, is_verified_author, avatar_url, created_at
+              role, credits, is_verified_author, avatar_url, created_at,
+              password_hash, google_id, facebook_id
        FROM users WHERE user_id = $1`,
       [req.user.user_id]
     );
@@ -197,6 +198,11 @@ const getMe = async (req, res, next) => {
     }
 
     const user = result.rows[0];
+    
+    // Determine auth provider
+    let authProvider = null;
+    if (user.google_id) authProvider = 'Google';
+    else if (user.facebook_id) authProvider = 'Facebook';
 
     res.json({
       success: true,
@@ -212,7 +218,9 @@ const getMe = async (req, res, next) => {
         credits: parseInt(user.credits) || 0,
         isVerifiedAuthor: user.is_verified_author,
         avatarUrl: user.avatar_url,
-        createdAt: user.created_at
+        createdAt: user.created_at,
+        hasPassword: !!user.password_hash,
+        authProvider: authProvider
       }
     });
   } catch (error) {
@@ -385,7 +393,13 @@ const verifyEmail = async (req, res, next) => {
 
 const resendVerification = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    // Get email from authenticated user if available, otherwise from request body
+    let email = req.body.email;
+    
+    // If user is authenticated, use their email
+    if (req.user && req.user.email) {
+      email = req.user.email;
+    }
 
     if (!email) {
       return res.status(400).json({
@@ -470,13 +484,23 @@ const googleCallback = async (req, res, next) => {
       return res.redirect(`${config.FRONTEND_URL}/login?error=google_no_user`);
     }
     
+    // Check if user has password (to determine if they need to complete profile)
+    console.log('🔍 Checking if user has password...');
+    console.log('User object password_hash:', user.password_hash ? 'EXISTS' : 'NULL');
+    
+    const needsPassword = !user.password_hash;
+    console.log('📝 Needs to complete profile:', needsPassword);
+    
     // Generate JWT token
     const token = generateToken(user.user_id);
     console.log('✅ Google OAuth success - Token generated for user:', user.user_id);
-    console.log('Redirecting to:', `${config.FRONTEND_URL}/oauth-success?token=${token.substring(0, 20)}...`);
     
-    // Redirect to frontend with token
-    res.redirect(`${config.FRONTEND_URL}/oauth-success?token=${token}`);
+    const redirectUrl = needsPassword 
+      ? `${config.FRONTEND_URL}/oauth-success?token=${token}&complete_profile=true`
+      : `${config.FRONTEND_URL}/oauth-success?token=${token}`;
+    
+    console.log('🚀 Redirecting to:', redirectUrl);
+    res.redirect(redirectUrl);
   })(req, res, next);
 };
 
@@ -508,11 +532,22 @@ const facebookCallback = async (req, res, next) => {
       return res.redirect(`${config.FRONTEND_URL}/login?error=facebook_no_user`);
     }
     
+    // Check if user has password (to determine if they need to complete profile)
+    console.log('🔍 Checking if user has password...');
+    console.log('User object password_hash:', user.password_hash ? 'EXISTS' : 'NULL');
+    
+    const needsPassword = !user.password_hash;
+    console.log('📝 Needs to complete profile:', needsPassword);
+    
     // Generate JWT token
     const token = generateToken(user.user_id);
     
-    // Redirect to frontend with token
-    res.redirect(`${config.FRONTEND_URL}/oauth-success?token=${token}`);
+    const redirectUrl = needsPassword 
+      ? `${config.FRONTEND_URL}/oauth-success?token=${token}&complete_profile=true`
+      : `${config.FRONTEND_URL}/oauth-success?token=${token}`;
+    
+    console.log('🚀 Redirecting to:', redirectUrl);
+    res.redirect(redirectUrl);
   })(req, res, next);
 };
 
@@ -530,6 +565,101 @@ const changePassword = async (req, res) => {
   });
 };
 
+// Complete OAuth Profile - Thiết lập mật khẩu cho OAuth users
+const completeOAuthProfile = async (req, res) => {
+  try {
+    console.log('📝 Complete OAuth Profile - req.user:', req.user);
+    const userId = req.user.user_id; // Fix: use user_id not userId
+    const { password, university, major } = req.body;
+
+    console.log('📝 Complete OAuth Profile - User ID:', userId);
+    console.log('📝 Password length:', password?.length);
+    console.log('📝 University:', university);
+    console.log('📝 Major:', major);
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mật khẩu là bắt buộc'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mật khẩu phải có ít nhất 6 ký tự'
+      });
+    }
+
+    // Check if user exists and is OAuth user
+    console.log('🔍 Querying user with ID:', userId, 'Type:', typeof userId);
+    const userResult = await query(
+      'SELECT user_id, password_hash, google_id, facebook_id FROM users WHERE user_id = $1',
+      [userId]
+    );
+    console.log('🔍 User query result rows:', userResult.rows.length);
+
+    if (userResult.rows.length === 0) {
+      console.error('❌ User not found with ID:', userId);
+      return res.status(404).json({
+        success: false,
+        error: 'Người dùng không tồn tại'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify this is an OAuth user
+    if (!user.google_id && !user.facebook_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Chức năng này chỉ dành cho người dùng đăng nhập qua Google/Facebook'
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user with password and optional info
+    const updateFields = ['password_hash = $1', 'updated_at = NOW()'];
+    const updateValues = [hashedPassword];
+    let paramIndex = 2;
+
+    if (university) {
+      updateFields.push(`university = $${paramIndex}`);
+      updateValues.push(university);
+      paramIndex++;
+    }
+
+    if (major) {
+      updateFields.push(`major = $${paramIndex}`);
+      updateValues.push(major);
+      paramIndex++;
+    }
+
+    updateValues.push(userId);
+
+    await query(
+      `UPDATE users SET ${updateFields.join(', ')} WHERE user_id = $${paramIndex}`,
+      updateValues
+    );
+
+    console.log(`✅ OAuth user ${userId} completed profile setup`);
+
+    res.json({
+      success: true,
+      message: 'Cập nhật thông tin thành công'
+    });
+
+  } catch (error) {
+    console.error('Complete OAuth profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Có lỗi xảy ra khi cập nhật thông tin'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -545,5 +675,6 @@ module.exports = {
   facebookCallback,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  completeOAuthProfile
 };

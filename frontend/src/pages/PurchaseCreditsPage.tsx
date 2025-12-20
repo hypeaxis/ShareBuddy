@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Spinner, Alert } from 'react-bootstrap';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import axios from 'axios';
+import apiClient from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks';
@@ -30,7 +30,6 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
 }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { token } = useAuth();
   
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string>('');
@@ -48,13 +47,12 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
 
     try {
       // Create payment intent
-      const response = await axios.post(
-        '/api/payment/create-intent',
+      const response = await apiClient.post(
+        '/payment/create-intent',
         {
           packageId: selectedPackage.package_id,
           currency
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       const { clientSecret } = response.data.data;
@@ -122,7 +120,7 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
             Processing...
           </>
         ) : (
-          `Pay $${selectedPackage?.price_usd.toFixed(2)}`
+          `Pay $${Number(selectedPackage?.price_usd || 0).toFixed(2)}`
         )}
       </Button>
 
@@ -157,7 +155,7 @@ const PurchaseCreditsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(''); // Clear previous errors
-      const response = await axios.get('/api/payment/packages');
+      const response = await apiClient.get('/payment/packages');
       
       if (response.data && response.data.data) {
         setPackages(response.data.data.packages || []);
@@ -254,9 +252,9 @@ const PurchaseCreditsPage: React.FC = () => {
                   )}
 
                   <div className="my-4">
-                    <h3 className="text-dark">${pkg.price_usd.toFixed(2)}</h3>
+                    <h3 className="text-dark">${Number(pkg.price_usd || 0).toFixed(2)}</h3>
                     <small className="text-muted">
-                      ≈ {pkg.price_vnd.toLocaleString('vi-VN')} VND
+                      ≈ {Number(pkg.price_vnd || 0).toLocaleString('vi-VN')} VND
                     </small>
                   </div>
 
@@ -293,9 +291,9 @@ const PurchaseCreditsPage: React.FC = () => {
                           </small>
                         </div>
                         <div className="text-end">
-                          <h5 className="mb-0">${selectedPackage.price_usd.toFixed(2)}</h5>
+                          <h5 className="mb-0">${Number(selectedPackage.price_usd || 0).toFixed(2)}</h5>
                           <small className="text-muted">
-                            {selectedPackage.price_vnd.toLocaleString('vi-VN')} VND
+                            {Number(selectedPackage.price_vnd || 0).toLocaleString('vi-VN')} VND
                           </small>
                         </div>
                       </div>

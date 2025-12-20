@@ -7,6 +7,7 @@
 export interface User {
   id: string;
   email: string;
+  emailVerified?: boolean;
   username: string;
   fullName: string;
   bio?: string;
@@ -18,6 +19,8 @@ export interface User {
   avatarUrl?: string;
   createdAt: string;
   updatedAt?: string;
+  hasPassword?: boolean; // True if user has set a password (false for OAuth-only users)
+  authProvider?: string; // 'google' | 'facebook' | null for regular users
   stats?: {
     documentCount: number;
     followingCount: number;

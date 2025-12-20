@@ -19,10 +19,12 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Pages
-import HomePage from './pages/HomePage';
+import WelcomePage from './pages/WelcomePage';
+import MyFeedPage from './pages/MyFeedPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import OAuthSuccessPage from './pages/auth/OAuthSuccessPage';
+import CompleteOAuthProfilePage from './pages/auth/CompleteOAuthProfilePage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
@@ -74,7 +76,10 @@ const AppContent: React.FC = () => {
           <main className="main-content">
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
+              <Route 
+                path="/" 
+                element={isAuthenticated ? <MyFeedPage /> : <WelcomePage />} 
+              />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/documents/:id" element={<DocumentDetailPage />} />
               <Route path="/bookmarked" element={<BookmarkedDocumentsPage />} />
@@ -101,6 +106,7 @@ const AppContent: React.FC = () => {
               
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/complete-oauth-profile" element={<CompleteOAuthProfilePage />} />
                 <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
                 <Route path="/upload" element={<UploadPage />} />
                 <Route path="/profile" element={<ProfilePage />} />

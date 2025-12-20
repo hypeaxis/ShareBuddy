@@ -1,10 +1,11 @@
 /**
  * Payment History Page - View transaction history
+ * Uses apiClient for authenticated API calls
  */
 
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Badge, Spinner, Alert, Card, Pagination } from 'react-bootstrap';
-import axios from 'axios';
+import apiClient from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +22,7 @@ interface Transaction {
 
 const PaymentHistoryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,16 +42,20 @@ const PaymentHistoryPage: React.FC = () => {
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/payment/history', {
-        params: { page: currentPage, limit: 10 },
-        headers: { Authorization: `Bearer ${token}` }
+      setError('');
+      
+      const response = await apiClient.get('/payment/history', {
+        params: { page: currentPage, limit: 10 }
       });
 
-      setTransactions(response.data.data.transactions);
-      setTotalPages(response.data.data.pagination.totalPages);
-      setLoading(false);
+      if (response.data.success && response.data.data) {
+        setTransactions(response.data.data.transactions || []);
+        setTotalPages(response.data.data.pagination?.totalPages || 1);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load history');
+      console.error('Error fetching payment history:', err);
+      setError(err.response?.data?.error || 'Không thể tải lịch sử giao dịch');
+    } finally {
       setLoading(false);
     }
   };

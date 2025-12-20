@@ -18,12 +18,13 @@ const OAuthSuccessPage: React.FC = () => {
     const processOAuth = async () => {
       const token = searchParams.get('token');
       const errorParam = searchParams.get('error');
+      const completeProfile = searchParams.get('complete_profile');
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 OAuth Success Page - Processing OAuth callback');
-        console.log('Token received:', token ? 'Yes' : 'No');
-        console.log('Error param:', errorParam);
-      }
+      console.log('🔍 OAuth Success Page - Processing OAuth callback');
+      console.log('Token received:', token ? 'Yes' : 'No');
+      console.log('Error param:', errorParam);
+      console.log('Complete profile param:', completeProfile);
+      console.log('Complete profile === "true":', completeProfile === 'true');
 
       if (errorParam) {
         console.error('❌ OAuth error parameter:', errorParam);
@@ -63,16 +64,23 @@ const OAuthSuccessPage: React.FC = () => {
         
         // Check if user fetch was successful
         if (result.type === 'auth/getCurrentUser/fulfilled') {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ User data loaded successfully');
-            console.log('🚀 Redirecting to profile...');
-          }
+          console.log('✅ User data loaded successfully');
+          console.log('📋 User data:', result.payload);
           setProcessingAuth(false);
           
-          // Redirect to profile after a short delay
-          setTimeout(() => {
-            navigate('/profile', { replace: true });
-          }, 500);
+          // Redirect based on whether profile needs completion
+          console.log('🔍 Checking complete_profile param:', completeProfile);
+          if (completeProfile === 'true') {
+            console.log('🚀 Redirecting to complete OAuth profile...');
+            setTimeout(() => {
+              navigate('/complete-oauth-profile', { replace: true });
+            }, 500);
+          } else {
+            console.log('🚀 Redirecting to dashboard...');
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 500);
+          }
         } else {
           console.error('❌ Failed to fetch user data:', result);
           throw new Error('Failed to fetch user data');

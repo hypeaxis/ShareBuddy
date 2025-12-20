@@ -5,10 +5,12 @@
 import React from 'react';
 import { Navbar as BSNavbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCloudUploadAlt, FaCoins } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaCoins, FaUserPlus } from 'react-icons/fa';
+import { BiLogIn } from 'react-icons/bi';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { toggleSidebar, toggleTheme } from '../../store/slices/uiSlice';
 import { useAuth } from '../../hooks/useAuth';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 
 const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -37,31 +39,38 @@ const Navbar: React.FC = () => {
           <i className={`bi ${sidebarOpen ? 'bi-x-lg' : 'bi-list'}`}></i>
         </Button>
 
-        {/* Brand - shifts left on wide screens */}
-        <BSNavbar.Brand as={Link} to="/" className="fw-bold text-gradient-purple navbar-brand-responsive">
+        {/* Brand - centered when not authenticated on mobile */}
+        <BSNavbar.Brand 
+          as={Link} 
+          to="/" 
+          className={`fw-bold text-gradient-purple navbar-brand-responsive ${!isAuthenticated ? 'mx-auto mx-lg-0' : ''}`}
+        >
           <span className="d-none d-sm-inline">📚 ShareBuddy</span>
           <span className="d-inline d-sm-none">📚 SB</span>
         </BSNavbar.Brand>
 
-        {/* Mobile view - avatar dropdown always visible */}
-        {isAuthenticated && (
-          <NavDropdown
-            title={
-              <img
-                src={user?.avatarUrl || DEFAULT_AVATAR}
-                alt="Avatar"
-                className="user-avatar"
-                style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = DEFAULT_AVATAR;
-                }}
-              />
-            }
-            id="user-dropdown-mobile"
-            align="end"
-            className="d-lg-none"
-          >
+        {/* Mobile view - user controls */}
+        {isAuthenticated ? (
+          <div className="d-lg-none d-flex align-items-center gap-2">
+            {/* Notification Dropdown - Mobile */}
+            <NotificationDropdown />
+            
+            <NavDropdown
+              title={
+                <img
+                  src={user?.avatarUrl || DEFAULT_AVATAR}
+                  alt="Avatar"
+                  className="user-avatar"
+                  style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_AVATAR;
+                  }}
+                />
+              }
+              id="user-dropdown-mobile"
+              align="end"
+            >
             <NavDropdown.Item as={Link} to="/profile?tab=credits">
               <div className="d-flex align-items-center">
                 <FaCoins className="me-2 text-warning" />
@@ -82,7 +91,27 @@ const Navbar: React.FC = () => {
               <i className="bi bi-box-arrow-right me-2"></i>
               Đăng xuất
             </NavDropdown.Item>
-          </NavDropdown>
+            </NavDropdown>
+          </div>
+        ) : (
+          <div className="d-lg-none d-flex gap-2">
+            <Button
+              variant="outline-light"
+              size="sm"
+              title="Đăng nhập"
+              onClick={() => navigate('/login')}
+            >
+              <BiLogIn size={20} />
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              title="Đăng ký"
+              onClick={() => navigate('/register')}
+            >
+              <FaUserPlus size={18} />
+            </Button>
+          </div>
         )}
 
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="d-none" />
@@ -105,6 +134,11 @@ const Navbar: React.FC = () => {
                 >
                   <FaCoins className="me-2 text-warning" />
                   <span>{user?.credits || 0} Credits</span>
+                </div>
+
+                {/* Notification Dropdown - Desktop */}
+                <div className="d-none d-lg-block me-2">
+                  <NotificationDropdown />
                 </div>
 
                 <NavDropdown
@@ -142,13 +176,11 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
+                {/* Desktop view only - full text buttons */}
                 <Nav.Link as={Link} to="/login" className="mb-2 mb-lg-0">
                   Đăng nhập
                 </Nav.Link>
-                <Link
-                  to="/register"
-                  className="btn btn-primary btn-sm"
-                >
+                <Link to="/register" className="btn btn-primary btn-sm">
                   Đăng ký
                 </Link>
               </>

@@ -72,5 +72,6 @@ router.get('/facebook/callback', authController.facebookCallback);
 router.get('/me', protect, authController.getMe);
 router.put('/update-profile', protect, authController.updateProfile);
 router.put('/change-password', protect, authController.changePassword);
+router.post('/complete-oauth-profile', protect, authController.completeOAuthProfile);
 
 module.exports = router;

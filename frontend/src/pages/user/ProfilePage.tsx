@@ -20,6 +20,7 @@ interface UserProfile {
   username: string;
   fullName: string;
   email: string;
+  emailVerified: boolean;
   bio: string;
   university: string;
   major: string;
@@ -65,6 +66,7 @@ const ProfilePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
@@ -108,6 +110,7 @@ const ProfilePage: React.FC = () => {
             username: userData.username,
             fullName: userData.fullName,
             email: currentUser.email,
+            emailVerified: currentUser.emailVerified || false,
             bio: userData.bio || '',
             university: userData.university || '',
             major: userData.major || '',
@@ -252,6 +255,39 @@ const ProfilePage: React.FC = () => {
     } catch (err: any) {
       console.error('Error updating profile:', err);
       setError(err?.error || 'Không thể cập nhật profile');
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setSendingVerification(true);
+      setError('');
+      setSuccessMessage('');
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sharebuddy_token')}`
+        },
+        body: JSON.stringify({
+          email: profile?.email || currentUser?.email
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccessMessage('Email xác minh đã được gửi! Vui lòng kiểm tra hộp thư của bạn.');
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        setError(data.error || 'Không thể gửi email xác minh');
+      }
+    } catch (err: any) {
+      console.error('Error resending verification:', err);
+      setError('Không thể gửi email xác minh. Vui lòng thử lại sau.');
+    } finally {
+      setSendingVerification(false);
     }
   };
 
@@ -623,7 +659,42 @@ const ProfilePage: React.FC = () => {
                   <Col md={6}>
                     <div className="mb-3">
                       <strong>Email:</strong>
-                      <p className="mb-0 text-muted">{profile.email}</p>
+                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <p className="mb-0 text-muted">{profile.email}</p>
+                        {profile.emailVerified ? (
+                          <Badge bg="success" className="d-flex align-items-center gap-1">
+                            <i className="bi bi-check-circle-fill"></i>
+                            Đã xác minh
+                          </Badge>
+                        ) : (
+                          <>
+                            <Badge bg="warning" text="dark" className="d-flex align-items-center gap-1">
+                              <i className="bi bi-exclamation-circle-fill"></i>
+                              Chưa xác minh
+                            </Badge>
+                            {isOwnProfile && (
+                              <Button 
+                                size="sm" 
+                                variant="outline-primary"
+                                onClick={handleResendVerification}
+                                disabled={sendingVerification}
+                              >
+                                {sendingVerification ? (
+                                  <>
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                    Đang gửi...
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="bi bi-envelope me-1"></i>
+                                    Gửi xác minh email
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="mb-3">
                       <strong>Trường đại học:</strong>

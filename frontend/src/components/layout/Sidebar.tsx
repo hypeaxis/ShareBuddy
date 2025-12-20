@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
             className={isActive('/') ? 'active' : ''}
           >
             <i className="bi bi-house me-2"></i>
-            Trang chủ
+            My Feed
           </Nav.Link>
         </Nav.Item>
 
@@ -95,6 +95,16 @@ const Sidebar: React.FC = () => {
         {isAuthenticated && (
           <div className="mt-auto pt-3">
             <hr className="my-2" />
+            <Nav.Item>
+              <Nav.Link
+                as={Link}
+                to="/payment-history"
+                className={isActive('/payment-history') ? 'active' : ''}
+              >
+                <i className="bi bi-receipt me-2"></i>
+                Đơn hàng của tôi
+              </Nav.Link>
+            </Nav.Item>
             <Nav.Item>
               <Nav.Link
                 as={Link}
