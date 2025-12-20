@@ -2,6 +2,23 @@
 
 All notable changes to ShareBuddy project will be documented in this file.
 
+
+## [1.6.3] - 2025-12-20
+
+### 🎯 Preview Modification
+
+### Use Gotenberg (docker based pdf converter)
+- **Need to Configure**: Docker volumes for storages(Documents - Previews - Thumbnails):
+  volumes:
+  ./uploads:/app/uploads
+
+- Added Gotenberg_URL in backend/.env
+- Update DocumentCard and DocumentPreview to correct logics
+- Keep the storages approach (Documents - Previews - Thumbnails) for better handling on web
+
+### Fixing minor bugs
+- Fixing bugs related to APIs and Frontend mismatch.
+
 ## [1.6.2] - 2025-12-17
 
 ### 🎯 Architecture Simplification

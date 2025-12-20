@@ -1,5 +1,6 @@
 /**
  * TypeScript types and interfaces for ShareBuddy application
+ * UPDATED: Consistent UserSimple usage and Search Params
  */
 
 // User related types
@@ -33,7 +34,7 @@ export interface UserSimple {
   fullName: string;
   avatarUrl: string | null;
   isVerifiedAuthor?: boolean;
-  university?: string; // Sometimes needed
+  university?: string; 
   major?: string;
 }
 
@@ -42,17 +43,17 @@ export interface Document {
   id: string;
   title: string;
   description: string;
-  fileName?: string; // NEW: Added fileName
-  fileUrl?: string; // Optional if not returned in list view
-  fileSize?: number; // NEW
-  fileType?: string; // NEW
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  fileType?: string;
   thumbnailUrl?: string;
-  category?: string; // Made optional as it might be replaced by subject in some contexts
+  category?: string; // Optional, might be deprecated in favor of subject
   subject: string;
-  university?: string; // NEW: Added university to root
+  university?: string;
   creditCost: number;
   downloadCount: number;
-  viewCount?: number; // NEW
+  viewCount?: number;
   status: 'pending' | 'approved' | 'rejected';
   avgRating?: string;
   ratingCount: number;
@@ -61,12 +62,12 @@ export interface Document {
   tags?: string[];
   createdAt: string;
   updatedAt: string;
-  author: UserSimple; // Use consistent user type
+  author: UserSimple; // CHANGED: Use UserSimple for consistency
   userInteraction?: {
     isBookmarked: boolean;
     userRating?: {
       rating: number;
-      comment?: string; // Optional
+      comment?: string;
     };
     canDownload: boolean;
   };
@@ -82,7 +83,7 @@ export interface Document {
 export interface Rating {
   id: string;
   rating: number;
-  comment?: string; // Optional field for UI, even if not in DB
+  comment?: string;
   createdAt: string;
   updatedAt?: string;
   user: UserSimple;
@@ -98,7 +99,7 @@ export interface RatingStatistics {
   };
 }
 
-// NEW: Response structures for Rating Service
+// Response structures for Rating Service
 export interface DocumentRatingsResponse {
   ratings: Rating[];
   statistics: RatingStatistics;
@@ -113,7 +114,7 @@ export interface SingleRatingResponse {
 export interface Comment {
   id: string;
   content: string;
-  parentId?: string; // Matches frontend usage
+  parentId?: string;
   createdAt: string;
   updatedAt: string;
   likeCount: number;
@@ -123,7 +124,7 @@ export interface Comment {
   replies?: Comment[];
 }
 
-// NEW: Q&A related types (Question & Answer)
+// Q&A related types
 export interface Question {
   id: string;
   title: string;
@@ -133,7 +134,7 @@ export interface Question {
   voteCount: number;
   viewCount: number;
   answerCount: number;
-  documentId?: string; // Optional depending on context
+  documentId?: string;
   documentTitle?: string;
   author: UserSimple;
   createdAt: string;
@@ -171,7 +172,7 @@ export interface CreditTransaction {
 }
 
 export interface CreditPackage {
-  id?: string; // Added ID
+  id?: string;
   credits: number;
   price: number;
   currency: string;
@@ -201,15 +202,15 @@ export interface Pagination {
   currentPage: number;
   totalPages: number;
   totalItems: number;
-  hasNextPage?: boolean; // Optional, computed often
+  hasNextPage?: boolean;
   hasPrevPage?: boolean;
-  hasNext?: boolean; // Redux slice used this name
+  hasNext?: boolean;
   hasPrev?: boolean;
 }
 
 // Document upload response types
 export interface DocumentUploadResponse {
-  document: Document; // Reusing Document interface
+  document: Document;
   moderation?: {
     jobId: string;
     status: string;
@@ -268,14 +269,16 @@ export interface DocumentUploadForm {
   tags?: string | string[];
 }
 
+// UPDATED: Added verifiedAuthor and year
 export interface DocumentSearchParams {
   search?: string;
   category?: string;
   subject?: string;
   minRating?: number;
   maxCreditCost?: number;
-  verifiedAuthor?: boolean;
-  year?: number;
+  verifiedAuthor?: boolean; // NEW
+  year?: number; // NEW
+  authorId?: string; // NEW: To filter by specific author
   sortBy?: 'newest' | 'oldest' | 'popular' | 'rating' | 'downloads';
   sortOrder?: 'asc' | 'desc';
   page?: number;
@@ -301,14 +304,14 @@ export interface AuthState {
 export interface DocumentState {
   documents: Document[];
   currentDocument: Document | null;
-  popularDocuments: Document[]; // NEW
-  recentDocuments: Document[];  // NEW
-  searchResults: Document[];    // NEW
-  pagination: Pagination;       // NEW: made non-nullable for easier usage
-  searchParams: DocumentSearchParams | null; // NEW
+  popularDocuments: Document[];
+  recentDocuments: Document[];
+  searchResults: Document[];
+  pagination: Pagination;
+  searchParams: DocumentSearchParams | null;
   isLoading: boolean;
-  isUploading: boolean;         // NEW
-  uploadProgress: number;       // NEW
+  isUploading: boolean;
+  uploadProgress: number;
   error: string | null;
   categories: string[];
   subjects: string[];

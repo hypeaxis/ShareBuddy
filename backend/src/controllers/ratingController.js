@@ -207,10 +207,14 @@ const getUserRating = async (req, res, next) => {
     const userId = req.user.user_id;
 
     const result = await query(
-      `SELECT r.rating_id, r.rating, r.created_at, r.updated_at,
-              c.content as comment_text
-       FROM ratings r
-       LEFT JOIN comments c ON c.document_id = r.document_id 
+      `SELECT 
+      r.rating_id as id, 
+      r.rating, 
+      r.created_at, 
+      r.updated_at,
+      c.content as comment_text
+      FROM ratings r
+      LEFT JOIN comments c ON c.document_id = r.document_id 
                             AND c.user_id = r.user_id 
                             AND c.parent_comment_id IS NULL
        WHERE r.user_id = $1 AND r.document_id = $2`,
@@ -218,7 +222,10 @@ const getUserRating = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Chưa có đánh giá' });
+      return res.json({ 
+        success: true, 
+        data: { rating: null }
+      });
     }
 
     const rating = result.rows[0];

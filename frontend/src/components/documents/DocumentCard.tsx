@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Card, Badge, Button, Row, Col, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
+import { Card, Badge, Button, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Document } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
@@ -37,6 +37,32 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   const dispatch = useAppDispatch();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showUnbookmarkModal, setShowUnbookmarkModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // --- HELPER TO FIX IMAGE URL ---
+  const getImageUrl = (url?: string | null): string | null => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+
+    // Get Base URL
+    let baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+    
+    // Remove '/api' suffix if present
+    baseUrl = baseUrl.replace(/\/api\/?$/, '');
+    baseUrl = baseUrl.replace(/\/$/, '');
+
+    // Clean Image Path (Handle Windows backslashes)
+    let imagePath = url.replace(/\\/g, '/');
+    
+    // Ensure leading slash
+    if (!imagePath.startsWith('/')) {
+      imagePath = `/${imagePath}`;
+    }
+
+    const finalUrl = `${baseUrl}${imagePath}`;
+    console.log('Thumbnail URL:', finalUrl); // Debug log
+    return finalUrl;
+  };
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -47,18 +73,15 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       return;
     }
 
-    // If already bookmarked, show confirmation modal
     if (doc.userInteraction?.isBookmarked) {
       setShowUnbookmarkModal(true);
       return;
     }
 
-    // Add bookmark directly
     performBookmarkToggle();
   };
 
   const performBookmarkToggle = async () => {
-
     try {
       await dispatch(toggleBookmark({
         documentId: doc.id,
@@ -94,14 +117,21 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
 
     setIsDownloading(true);
     try {
-      // Download file
       const blob = await documentService.downloadDocument(doc.id);
       
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = window.document.createElement('a');
       link.href = url;
-      link.download = `${doc.title}.pdf`;
+      
+      if (doc.fileName) {
+        link.download = doc.fileName;
+      } else if (doc.title && doc.fileType) {
+        const ext = doc.fileType.startsWith('.') ? doc.fileType : `.${doc.fileType}`;
+        link.download = `${doc.title}${ext}`;
+      } else {
+        link.download = `${doc.title}.pdf`;
+      }
+
       window.document.body.appendChild(link);
       link.click();
       window.document.body.removeChild(link);
@@ -110,7 +140,6 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       toast.success('Tải xuống thành công!');
       if (onDownload) onDownload(doc.id);
       
-      // Refresh user data to update credits in Navbar
       dispatch(getCurrentUser());
       
     } catch (error) {
@@ -150,35 +179,65 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
     );
   };
 
+  const imageUrl = getImageUrl(doc.thumbnailUrl);
+  const showFallback = !imageUrl || imageError;
+
   return (
     <Card 
       className={`document-card ${compact ? 'card-compact' : ''} ${className || ''}`}
-      as={Link}
-      to={`/documents/${doc.id}`}
     >
       {/* Document Thumbnail */}
-      <div className="card-img-wrapper" style={{ height: compact ? '140px' : '200px' }}>
-        {doc.thumbnailUrl ? (
-          <Card.Img 
-            variant="top"
-            src={doc.thumbnailUrl}
-            alt={doc.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div 
-            className="d-flex align-items-center justify-content-center h-100"
-            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-          >
-            <i className="bi bi-file-earmark-text text-white" style={{ fontSize: '3rem' }} />
-          </div>
-        )}
+      <div className="card-img-wrapper" style={{ 
+        height: compact ? '140px' : '200px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <Link to={`/documents/${doc.id}`} style={{ 
+          display: 'block', 
+          height: '100%', 
+          width: '100%',
+          textDecoration: 'none' 
+        }}>
+          {!showFallback && imageUrl && (
+            <Card.Img 
+              variant="top"
+              src={imageUrl}
+              alt={doc.title}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+              onError={() => {
+                console.error('Image failed to load:', imageUrl);
+                setImageError(true);
+              }}
+            />
+          )}
+          
+          {/* Fallback Icon */}
+          {showFallback && (
+            <div 
+              className="d-flex align-items-center justify-content-center"
+              style={{ 
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              }}
+            >
+              <i className="bi bi-file-earmark-text text-white" style={{ fontSize: '3rem' }} />
+            </div>
+          )}
+        </Link>
       </div>
       
       <Card.Body className="d-flex flex-column">
         {/* Title */}
-        <Card.Title className={`${compact ? 'h6' : 'h5'} mb-2`}>
-          {doc.title}
+        <Card.Title className={`${compact ? 'h6' : 'h5'} mb-2 text-truncate`} title={doc.title}>
+          <Link to={`/documents/${doc.id}`} className="text-decoration-none" style={{ position: 'relative', zIndex: 1 }}>
+            {doc.title}
+          </Link>
         </Card.Title>
         
         {/* Description */}
@@ -270,7 +329,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
           </small>
           
           {/* Action Buttons */}
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-2" style={{ position: 'relative', zIndex: 2 }}>
             {/* Bookmark Button */}
             <OverlayTrigger
               placement="top"
@@ -289,34 +348,25 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
               </Button>
             </OverlayTrigger>
 
-            {/* Download Button with Info */}
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip>Tải xuống - {doc.creditCost} credits</Tooltip>}
-            >
+            {/* Download Button */}
+            <OverlayTrigger placement="top" overlay={<Tooltip>Tải xuống - {doc.creditCost} credits</Tooltip>}>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={handleDownload}
                 disabled={isDownloading || !doc.userInteraction?.canDownload}
                 className="d-flex align-items-center gap-1 px-3"
-                style={{ 
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  border: 'none',
-                  fontWeight: '500'
-                }}
+                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', fontWeight: '500' }}
               >
-                {isDownloading ? (
-                  <div className="spinner-border spinner-border-sm" />
-                ) : (
+                {isDownloading ? <div className="spinner-border spinner-border-sm" /> : 
                   <>
                     <i className="bi bi-download" />
-                    <span style={{ fontSize: '0.75rem' }}>{doc.downloadCount || 0}</span>
+                    <span className="ms-1" style={{ fontSize: '0.75rem' }}>{doc.downloadCount || 0}</span>
                     <span className="mx-1">•</span>
                     <span style={{ fontSize: '0.75rem' }}>{doc.creditCost}</span>
                     <i className="bi bi-coin" style={{ fontSize: '0.75rem' }} />
                   </>
-                )}
+                }
               </Button>
             </OverlayTrigger>
           </div>
@@ -327,30 +377,15 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       <Modal
         show={showUnbookmarkModal}
         onHide={() => setShowUnbookmarkModal(false)}
-        backdrop="static"
         centered
-        style={{ zIndex: 9999 }}
       >
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 9998
-          }}
-          onClick={() => setShowUnbookmarkModal(false)}
-        />
-        <Modal.Header closeButton style={{ position: 'relative', zIndex: 9999 }}>
+        <Modal.Header closeButton>
           <Modal.Title>Xác nhận</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ position: 'relative', zIndex: 9999 }}>
+        <Modal.Body>
           <p>Bỏ bookmark cho <strong>{doc.title}</strong>?</p>
         </Modal.Body>
-        <Modal.Footer style={{ position: 'relative', zIndex: 9999 }}>
+        <Modal.Footer>
           <Button 
             variant="secondary" 
             onClick={() => setShowUnbookmarkModal(false)}

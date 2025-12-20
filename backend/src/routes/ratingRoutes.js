@@ -32,7 +32,8 @@ router.post('/document/:id',
   protect,
   [
     param('id').isUUID().withMessage('Invalid UUID'),
-    body('rating').isInt({ min: 1, max: 5 })
+    body('rating').isInt({ min: 1, max: 5 }),
+    body('comment').optional().isString().isLength({ max: 1000 })
   ],
   validate,
   ratingController.rateDocument

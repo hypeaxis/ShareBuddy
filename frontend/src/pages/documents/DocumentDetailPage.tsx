@@ -51,21 +51,40 @@ const DocumentDetailPage: React.FC = () => {
     setIsDownloading(true);
     try {
       const blob = await documentService.downloadDocument(currentDocument.id);
+      
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${currentDocument.title}.pdf`; 
+
+      // 1. Use actual fileName if available
+      if (currentDocument.fileName) {
+        link.download = currentDocument.fileName;
+      } 
+      // 2. Or construct from Title + Extension
+      else if (currentDocument.title && currentDocument.fileType) {
+        const ext = currentDocument.fileType.startsWith('.') ? currentDocument.fileType : `.${currentDocument.fileType}`;
+        link.download = `${currentDocument.title}${ext}`;
+      }
+      // 3. Fallback (try to infer from blob type or default to pdf)
+      else {
+        // Simple fallback
+        link.download = `${currentDocument.title || 'document'}.pdf`; 
+      }
+
       document.body.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
       toast.success('Tải tài liệu thành công!');
+      // Update credits
       dispatch(fetchDocumentById(currentDocument.id));
       
       // Refresh user data to update credits in Navbar
       dispatch(getCurrentUser());
     } catch (error: any) {
+      console.error("Download failed", error);
       toast.error(error.message || 'Không thể tải tài liệu');
     } finally {
       setIsDownloading(false);
