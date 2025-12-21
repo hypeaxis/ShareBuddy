@@ -1,4 +1,4 @@
-name: Deploy ShareBuddy Manual Flow
+name: Deploy ShareBuddy Optimized
 
 on:
   push:
@@ -7,39 +7,28 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    
-    # Thay 'Production' bằng tên Environment bạn đã tạo trên GitHub
     environment: Production
     
     env:
-      # Đặt tên project cố định để Docker tìm đúng container cũ để down
       COMPOSE_PROJECT_NAME: sharebuddy
 
     steps:
-      # 1. Pull Origin (GitHub Actions tự làm bước này)
-      - name: Checkout code (Pull Origin)
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Tạo file .env từ Secret của bạn
       - name: Create .env file
         run: |
           echo "${{ secrets.PROD_ENV }}" > .env
 
-      # 3. Thực hiện quy trình: Down -> Build -> Up
-      - name: Execute Deploy Sequence
+      - name: Build and Deploy
         run: |
-          echo "Stopping current containers..."
-          # Down: Dừng và xóa containers/networks cũ
-          docker compose down
-
-          echo "Building new images..."
-          # Build: Xây dựng lại image từ code mới pull về
+          echo "1️⃣ Building new images (Background)..." 
+          # Web vẫn online trong lúc này
           docker compose build
 
-          echo "Starting up..."
-          # Up: Chạy container mới
-          docker compose up -d
+          echo "2️⃣ Rolling Update..."
+          # Web chỉ restart trong vài giây ở bước này
+          docker compose up -d --remove-orphans
 
-      # 4. Dọn dẹp image rác (optional)
-      - name: Prune old images
+      - name: Cleanup
         run: docker image prune -f
