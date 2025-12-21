@@ -27,21 +27,6 @@ router.get('/transactions',
   creditController.getTransactionHistory
 );
 
-// Purchase credits
-router.post('/purchase',
-  protect,
-  [
-    body('amount').isInt({ min: 10 }).withMessage('Số lượng credits phải ít nhất là 10'),
-    body('paymentMethod').isIn(['momo', 'vnpay', 'banking']).withMessage('Phương thức thanh toán không hợp lệ')
-  ],
-  creditController.purchaseCredits
-);
-
-// Get credit packages
-router.get('/packages',
-  creditController.getCreditPackages
-);
-
 // Transfer credits to another user
 router.post('/transfer',
   protect,
