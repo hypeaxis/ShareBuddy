@@ -45,7 +45,9 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ documentId }) => {
   
   const getFullUrl = (url: string) => {
     if (!url) return '';
-    return url.startsWith('http') ? url : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${url}`;
+    if (url.startsWith('http')) return url;
+    // Return relative path - let nginx proxy handle it
+    return url.startsWith('/') ? url : `/${url}`;
   };
 
   if (loading) return (
