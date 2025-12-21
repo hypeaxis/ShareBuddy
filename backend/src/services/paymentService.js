@@ -180,13 +180,6 @@ const handlePaymentSuccess = async (paymentIntent) => {
         return { success: true, alreadyProcessed: true };
       }
 
-      await client.query(
-        `UPDATE payment_transactions 
-         SET payment_status = 'succeeded', updated_at = NOW()
-         WHERE stripe_payment_intent_id = $1`,
-        [paymentIntent.id]
-      );
-
       // Add credits to user account
       await client.query(
         'UPDATE users SET credits = credits + $1 WHERE user_id = $2',
