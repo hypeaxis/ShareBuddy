@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-toastify';
+import '../styles/VerifiedAuthorProgressPage.css';
 
 interface CriteriaProgress {
   current: number | boolean;
@@ -191,7 +192,20 @@ const VerifiedAuthorProgressPage: React.FC = () => {
   const overallProgress = (metCount / totalCount) * 100;
 
   return (
-    <Container className="py-4" style={{ marginTop: '80px', maxWidth: '900px' }}>
+    <div className="verified-author-progress-page">
+      {/* Background Image */}
+      <div className="verified-author-bg-container">
+        <div className="verified-author-bg-overlay"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1920&q=80" 
+          alt="Todo list on paper"
+          className="bg-image"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="verified-author-progress-page-content">
+        <Container className="py-4" style={{ marginTop: '80px', maxWidth: '900px' }}>
       <Card className="mb-4 shadow-sm border-0">
         <Card.Header className="bg-gradient-primary text-white d-flex align-items-center" style={{ background: 'linear-gradient(90deg, #007bff 0%, #00c6ff 100%)' }}>
           <i className="bi bi-award-fill me-3 fs-2"></i>
@@ -342,7 +356,9 @@ const VerifiedAuthorProgressPage: React.FC = () => {
           </ul>
         </Card.Body>
       </Card>
-    </Container>
+        </Container>
+      </div>
+    </div>
   );
 };
 

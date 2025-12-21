@@ -1,0 +1,62 @@
+/**
+ * VerifiedAuthorProgressPage Styles - Todo list background
+ * Features: Stock image background with gradient overlay
+ */
+
+/* Verified Author Progress Page Container */
+.verified-author-progress-page {
+  position: relative;
+  min-height: 100vh;
+  z-index: 0;
+}
+
+/* Background with image */
+.verified-author-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.verified-author-bg-container .bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.32);
+  animation: slowZoom 20s ease-in-out infinite alternate;
+}
+
+.verified-author-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.4) 0%,
+    rgba(202, 138, 4, 0.35) 50%,
+    rgba(139, 92, 246, 0.4) 100%
+  );
+  z-index: 0;
+}
+
+/* Main content area */
+.verified-author-progress-page-content {
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(to bottom, transparent 0%, var(--bs-body-bg) 15%);
+  min-height: 100vh;
+}
+
+@keyframes slowZoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}

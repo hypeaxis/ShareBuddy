@@ -14,6 +14,7 @@ import apiClient from '../services/api';
 import QuestionDetailModal from '../components/questions/QuestionDetailModal';
 import { getImageUrl } from '../utils/imageUtils';
 import VerifiedBadge from '../components/common/VerifiedBadge';
+import '../styles/MyFeedPage.css';
 
 interface Document {
   document_id: string;
@@ -115,7 +116,20 @@ const MyFeedPage: React.FC = () => {
   };
 
   return (
-    <Container className="py-4" style={{ paddingTop: '80px' }}>
+    <div className="feed-page">
+      {/* Background Image */}
+      <div className="feed-bg-container">
+        <div className="feed-bg-overlay"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1633821051688-fc558b716185?q=80&w=1056&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+          alt="Dark documents"
+          className="bg-image"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="feed-page-content">
+        <Container className="py-4" style={{ paddingTop: '80px' }}>
       {/* Section 1: Following Authors Documents */}
       <Row className="mb-5">
         <Col xs={12}>
@@ -312,7 +326,9 @@ const MyFeedPage: React.FC = () => {
           questionId={selectedQuestionId}
         />
       )}
-    </Container>
+        </Container>
+      </div>
+    </div>
   );
 };
 

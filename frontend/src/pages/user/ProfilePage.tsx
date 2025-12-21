@@ -17,6 +17,7 @@ import { toast } from 'react-toastify';
 import ModerationStatusBadge from '../../components/ModerationStatusBadge';
 import apiClient from '../../services/api';
 import VerifiedBadge from '../../components/common/VerifiedBadge';
+import '../../styles/ProfilePage.css';
 
 interface UserProfile {
   id: string;
@@ -522,7 +523,20 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <Container className="py-4" style={{ marginTop: '80px' }}>
+    <div className="profile-page">
+      {/* Background Image */}
+      <div className="profile-bg-container">
+        <div className="profile-bg-overlay"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+          alt="Professional profile background"
+          className="bg-image"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="profile-page-content">
+        <Container className="py-4" style={{ marginTop: '80px' }}>
       {/* Success/Error Messages */}
       {successMessage && (
         <Alert variant="success" dismissible onClose={() => setSuccessMessage('')}>
@@ -1189,7 +1203,9 @@ const ProfilePage: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Container>
+        </Container>
+      </div>
+    </div>
   );
 };
 

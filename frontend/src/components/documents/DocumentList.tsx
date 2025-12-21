@@ -233,6 +233,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
     }
     
     return (
+
       <div className="d-flex justify-content-center align-items-center mt-4">
         <Button
           variant="outline-primary"
@@ -261,16 +262,11 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <Container fluid className="pt-0 pb-4 document-list-container">
-      <div className="mb-4 d-flex align-items-center">
-        <span className="me-2" style={{ fontSize: '2rem', color: '#0d6efd' }}>
-          <i className="bi bi-journal-bookmark-fill" />
-        </span>
-        <div>
-          <h2 className="mb-1">
-        Toàn bộ tài liệu
-          </h2>
-          <p className="text-muted mb-0">Tìm kiếm toàn bộ tài liệu trên ShareBuddy tại đây</p>
-        </div>
+      <div className="mb-4">
+        <h2 className="mb-1">
+        📚 Toàn bộ tài liệu
+        </h2>
+        <p className="text-muted">Tìm kiếm toàn bộ tài liệu trên ShareBuddy tại đây</p>
       </div>
 
       <div className="document-list">

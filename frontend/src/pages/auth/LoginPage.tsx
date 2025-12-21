@@ -7,6 +7,7 @@ import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginForm } from '../../types';
+import '../../styles/AuthPages.css';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,7 +45,19 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container className="py-5" style={{ marginTop: '80px' }}>
+    <div className="auth-page">
+      {/* Background Image */}
+      <div className="auth-bg-container">
+        <div className="auth-bg-overlay"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80" 
+          alt="Students collaborating"
+          className="bg-image"
+        />
+      </div>
+
+      {/* Content */}
+      <Container className="py-5" style={{ marginTop: '80px' }}>
       <Row className="justify-content-center">
         <Col md={6} lg={4}>
           <Card className="card-hover">
@@ -153,7 +166,8 @@ const LoginPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
-    </Container>
+      </Container>
+    </div>
   );
 };
 

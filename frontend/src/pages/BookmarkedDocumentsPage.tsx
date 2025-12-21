@@ -14,6 +14,7 @@ import DocumentCard from '../components/documents/DocumentCard';
 import SearchFilters from '../components/documents/SearchFilters';
 import AuthorProfileModal from '../components/documents/AuthorProfileModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import '../styles/BookmarkedDocumentsPage.css';
 
 const BookmarkedDocumentsPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -245,7 +246,20 @@ const BookmarkedDocumentsPage: React.FC = () => {
   };
 
   return (
-    <Container fluid className="py-4" style={{ paddingTop: '80px' }}>
+    <div className="bookmarked-documents-page">
+      {/* Background Image */}
+      <div className="bookmarked-bg-container">
+        <div className="bookmarked-bg-overlay"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=3028&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+          alt="Library with books"
+          className="bg-image"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="bookmarked-documents-page-content">
+        <Container fluid className="py-4" style={{ paddingTop: '80px' }}>
       {/* Page Header */}
       <div className="mb-4">
         <h2 className="mb-1">
@@ -415,7 +429,9 @@ const BookmarkedDocumentsPage: React.FC = () => {
         onHide={() => setShowAuthorModal(false)}
         authorId={selectedAuthorId}
       />
-    </Container>
+        </Container>
+      </div>
+    </div>
   );
 };
 

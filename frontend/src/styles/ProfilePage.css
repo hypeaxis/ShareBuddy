@@ -1,0 +1,62 @@
+/**
+ * ProfilePage Styles - User profile with personal background
+ * Features: Stock image background with gradient overlay
+ */
+
+/* Profile Page Container */
+.profile-page {
+  position: relative;
+  min-height: 100vh;
+  z-index: 0;
+}
+
+/* Background with image */
+.profile-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.profile-bg-container .bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.33);
+  animation: slowZoom 20s ease-in-out infinite alternate;
+}
+
+.profile-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.5) 0%,
+    rgba(168, 85, 247, 0.45) 50%,
+    rgba(236, 72, 153, 0.5) 100%
+  );
+  z-index: 0;
+}
+
+/* Main content area */
+.profile-page-content {
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(to bottom, transparent 0%, var(--bs-body-bg) 15%);
+  min-height: 100vh;
+}
+
+@keyframes slowZoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
