@@ -30,9 +30,9 @@ export const documentService = {
       if (params.subject) queryParams.append('subject', params.subject);
       if (params.university) queryParams.append('university', params.university);
       if (params.minRating) queryParams.append('minRating', params.minRating.toString());
-      if (params.maxCreditCost) queryParams.append('maxCost', params.maxCreditCost.toString());
+      if (params.maxCreditCost) queryParams.append('maxCreditCost', params.maxCreditCost.toString());
       if (params.fileType) queryParams.append('fileType', params.fileType);
-      if (params.verifiedOnly) queryParams.append('verifiedOnly', 'true');
+      if (params.isVerifiedAuthor) queryParams.append('isVerifiedAuthor', 'true');
       if (params.year) queryParams.append('year', params.year.toString());
       if (params.tags && Array.isArray(params.tags) && params.tags.length > 0) {
         params.tags.forEach(tag => queryParams.append('tags', tag));
@@ -66,7 +66,7 @@ export const documentService = {
                 username: doc.author_username || doc.username,
                 fullName: doc.full_name,
                 avatarUrl: doc.avatar_url,
-                isVerifiedAuthor: doc.is_author_verified || doc.is_verified_author
+                isVerifiedAuthor: doc.is_verified_author
               }
             })),
             page: response.data.pagination?.page || response.data.page || 1,

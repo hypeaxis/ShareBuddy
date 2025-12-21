@@ -688,7 +688,7 @@ const getUserBookmarks = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 12;
     const offset = (page - 1) * limit;
     
-    const { search, subject, minRating, maxCost, verifiedAuthor, year, sortBy = 'created_at', sortOrder = 'DESC', tags } = req.query;
+    const { search, subject, minRating, maxCreditCost, isVerifiedAuthor, year, sortBy = 'created_at', sortOrder = 'DESC', tags } = req.query;
 
     let whereConditions = ["d.status = 'approved'", "b.user_id = $1"];
     let queryParams = [userId];
@@ -709,12 +709,12 @@ const getUserBookmarks = async (req, res, next) => {
       whereConditions.push(`d.average_rating >= $${paramCount}`);
       queryParams.push(parseFloat(minRating));
     }
-    if (maxCost) {
+    if (maxCreditCost) {
       paramCount++;
       whereConditions.push(`d.credit_cost <= $${paramCount}`);
-      queryParams.push(parseInt(maxCost));
+      queryParams.push(parseInt(maxCreditCost));
     }
-    if (verifiedAuthor === 'true') {
+    if (isVerifiedAuthor === 'true') {
       whereConditions.push(`u.is_verified_author = true`);
     }
     if (year) {

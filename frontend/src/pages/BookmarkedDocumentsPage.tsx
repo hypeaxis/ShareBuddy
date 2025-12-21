@@ -70,7 +70,7 @@ const BookmarkedDocumentsPage: React.FC = () => {
   useEffect(() => {
     const filters = getFiltersFromUrl();
     dispatch(fetchBookmarkedDocuments(filters));
-  }, [dispatch, searchParams, getFiltersFromUrl]);
+  }, [dispatch, getFiltersFromUrl]);
   
   // Debounced search effect - triggers 500ms after user stops typing
   useEffect(() => {

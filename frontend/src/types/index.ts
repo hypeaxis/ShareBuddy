@@ -282,7 +282,6 @@ export interface DocumentSearchParams {
   maxCreditCost?: number;
   fileType?: string; // NEW: For search API (pdf, docx, pptx, etc.)
   isVerifiedAuthor?: boolean; // For regular documents endpoint
-  verifiedOnly?: boolean; // NEW: For search API
   year?: number; // NEW
   authorId?: string; // NEW: To filter by specific author
   sortBy?: 'newest' | 'oldest' | 'popular' | 'rating' | 'downloads' | 'relevance';
