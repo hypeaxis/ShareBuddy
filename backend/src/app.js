@@ -63,6 +63,12 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+app.post(
+  '/api/payment/webhook',
+  express.raw({ type: 'application/json' }),
+  paymentController.handleWebhook
+);
+
 // Middleware setup
 // CORS configuration - Must be before other middleware
 app.use(cors({
@@ -80,12 +86,6 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined'));
-
-app.post(
-  '/api/payment/webhook',
-  express.raw({ type: 'application/json' }),
-  paymentController.handleWebhook
-);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

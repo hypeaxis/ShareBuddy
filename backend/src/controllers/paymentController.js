@@ -127,8 +127,8 @@ const handleWebhook = async (req, res, next) => {
 
     // Handle the event
     await paymentService.handleWebhook(event);
-
-    res.json({ received: true });
+    return res.status(200).json({ received: true });
+    
   } catch (error) {
     console.error('Webhook handler error:', error);
     res.status(500).json({
