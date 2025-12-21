@@ -17,11 +17,11 @@ const { protect } = require('../middleware/auth');
 router.get('/packages', paymentController.getCreditPackages);
 
 /**
- * @route   GET /api/payments/config
- * @desc    Get Stripe publishable key
+ * @route   GET /api/payments/packages-with-config
+ * @desc    Get credit packages along with Stripe publishable key
  * @access  Public
  */
-router.get('/config', paymentController.getConfig);
+router.get('/packages-with-config', paymentController.getPackagesWithConfig);
 
 /**
  * @route   POST /api/payments/create-intent

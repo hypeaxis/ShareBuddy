@@ -32,6 +32,23 @@ const getCreditPackages = async (req, res, next) => {
   }
 };
 
+const getPackagesWithConfig = async (req, res, next) => {
+  try {
+    const packages = await paymentService.getCreditPackages();
+    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
+
+    res.json({
+      success: true,
+      data: {
+        packages,
+        publishableKey
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Create payment intent
 const createPaymentIntent = async (req, res, next) => {
   try {
@@ -164,32 +181,11 @@ const verifyPayment = async (req, res, next) => {
   }
 };
 
-// Get Stripe config (publishable key)
-const getConfig = async (req, res, next) => {
-  try {
-    if (!process.env.STRIPE_PUBLISHABLE_KEY) {
-      return res.status(500).json({
-        success: false,
-        error: 'Stripe publishable key is not configured'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   getCreditPackages,
+  getPackagesWithConfig,
   createPaymentIntent,
   handleWebhook,
   getPaymentHistory,
   verifyPayment,
-  getConfig
 };
