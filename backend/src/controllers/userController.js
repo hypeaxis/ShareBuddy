@@ -16,6 +16,7 @@ const getProfile = async (req, res, next) => {
     const userResult = await query(
       `SELECT u.user_id, u.username, u.full_name, u.bio, u.university, u.major, 
               u.credits, u.is_verified_author, u.is_public_profile, u.avatar_url, u.created_at,
+              u.email_verified,
               COUNT(DISTINCT d.document_id) as document_count,
               COUNT(DISTINCT f1.following_id) as following_count,
               COUNT(DISTINCT f2.follower_id) as follower_count,
@@ -71,6 +72,7 @@ const getProfile = async (req, res, next) => {
         isPublic: user.is_public_profile, 
         avatarUrl: user.avatar_url,
         createdAt: user.created_at,
+        emailVerified: user.email_verified,
         stats: {
           documentCount: parseInt(user.document_count),
           followingCount: parseInt(user.following_count),
