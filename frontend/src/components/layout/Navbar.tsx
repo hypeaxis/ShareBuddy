@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import ShareBuddyLogo from '../common/ShareBuddyLogo';
 import { Navbar as BSNavbar, Nav, Container, Button, NavDropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCloudUploadAlt, FaCoins, FaUserPlus } from 'react-icons/fa';
@@ -46,8 +47,12 @@ const Navbar: React.FC = () => {
           to="/" 
           className={`fw-bold text-gradient-purple navbar-brand-responsive ${!isAuthenticated ? 'mx-auto mx-lg-0' : ''}`}
         >
-          <span className="d-none d-sm-inline">📚 ShareBuddy</span>
-          <span className="d-inline d-sm-none">📚 SB</span>
+            <span className="me-2" style={{ display: 'inline-flex', verticalAlign: 'middle' }}>
+              {/* Reusable ShareBuddy SVG Logo */}
+              <ShareBuddyLogo width={28} height={28} />
+            </span>
+            <span className="d-none d-sm-inline">ShareBuddy</span>
+            <span className="d-inline d-sm-none">SB</span>
         </BSNavbar.Brand>
 
         {/* Mobile view - user controls */}
@@ -183,7 +188,20 @@ const Navbar: React.FC = () => {
                 <Nav.Link as={Link} to="/login" className="mb-2 mb-lg-0">
                   Đăng nhập
                 </Nav.Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
+                <Link
+                  to="/register"
+                  className="btn btn-gradient-purple btn-sm fw-bold px-3 py-1 d-flex align-items-center gap-2 shadow-sm"
+                  style={{
+                  borderRadius: '20px',
+                  fontSize: '1rem',
+                  letterSpacing: '0.5px',
+                  transition: 'transform 0.1s',
+                  }}
+                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.96)')}
+                  onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <FaUserPlus size={18} />
                   Đăng ký
                 </Link>
               </>

@@ -32,7 +32,6 @@ import DocumentDetailPage from './pages/documents/DocumentDetailPage';
 import DocumentsPage from './pages/documents/DocumentsPage';
 import UploadPage from './pages/documents/UploadPage';
 import ProfilePage from './pages/user/ProfilePage';
-import VerifiedAuthorsPage from './pages/VerifiedAuthorsPage';
 import VerifiedAuthorProgressPage from './pages/VerifiedAuthorProgressPage';
 import PurchaseCreditsPage from './pages/PurchaseCreditsPage';
 import PaymentHistoryPage from './pages/PaymentHistoryPage';
@@ -81,7 +80,6 @@ const AppContent: React.FC = () => {
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/documents/:id" element={<DocumentDetailPage />} />
               <Route path="/bookmarked" element={<BookmarkedDocumentsPage />} />
-              <Route path="/verified-authors" element={<VerifiedAuthorsPage />} />
               
               {/* Auth Routes */}
               <Route 

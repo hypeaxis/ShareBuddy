@@ -112,12 +112,19 @@ const PaymentHistoryPage: React.FC = () => {
 
   return (
     <Container className="py-4" style={{ marginTop: '80px', maxWidth: '1200px' }}>
-      <h2 className="mb-4">📊 Payment History</h2>
+      <div className="d-flex align-items-center mb-4">
+        <span style={{ marginRight: 12 }}>
+          <i className="bi bi-cash-stack" style={{ color: '#198754', fontSize: '2rem' }}></i>
+        </span>
+        <h2 className="mb-0 fw-bold" style={{ letterSpacing: 1 }}>
+          Đơn hàng Credits của bạn
+        </h2>
+      </div>
 
       {transactions.length === 0 ? (
         <Card className="text-center py-5">
           <Card.Body>
-            <p className="text-muted mb-0">No transactions yet</p>
+            <p className="text-muted mb-0">Chưa có giao dịch nào</p>
           </Card.Body>
         </Card>
       ) : (

@@ -119,7 +119,12 @@ const MyFeedPage: React.FC = () => {
       {/* Section 1: Following Authors Documents */}
       <Row className="mb-5">
         <Col xs={12}>
-          <h4 className="mb-3">📚 Từ tác giả bạn follow</h4>
+            <h4 className="mb-3">
+            <span style={{ verticalAlign: 'middle', marginRight: 8 }}>
+              <i className="bi bi-people-fill text-primary" style={{ fontSize: '1.3rem' }}></i>
+            </span>
+            Từ tác giả bạn follow
+            </h4>
           {loading.following ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
@@ -158,7 +163,12 @@ const MyFeedPage: React.FC = () => {
       {/* Section 2: Trending Documents */}
       <Row className="mb-5">
         <Col xs={12}>
-          <h4 className="mb-3">🔥 Tài liệu trending trong ngày</h4>
+            <h4 className="mb-3">
+            <span style={{ verticalAlign: 'middle', marginRight: 8 }}>
+              <i className="bi bi-fire text-danger" style={{ fontSize: '1.3rem' }}></i>
+            </span>
+            Tài liệu trending trong ngày
+            </h4>
           {loading.trending ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
@@ -199,7 +209,12 @@ const MyFeedPage: React.FC = () => {
       {/* Section 3: Recommendations */}
       <Row className="mb-5">
         <Col xs={12}>
-          <h4 className="mb-3">💡 Bạn có thể quan tâm</h4>
+            <h4 className="mb-3">
+            <span style={{ verticalAlign: 'middle', marginRight: 8 }}>
+              <i className="bi bi-lightbulb-fill text-warning" style={{ fontSize: '1.3rem' }}></i>
+            </span>
+            Bạn có thể quan tâm
+            </h4>
           {loading.recommended ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
@@ -237,7 +252,12 @@ const MyFeedPage: React.FC = () => {
       {/* Section 4: Hot Q&A */}
       <Row className="mb-5">
         <Col xs={12}>
-          <h4 className="mb-3">💬 Chủ đề Q&A nóng</h4>
+            <h4 className="mb-3">
+            <span style={{ verticalAlign: 'middle', marginRight: 8 }}>
+              <i className="bi bi-chat-dots-fill text-info" style={{ fontSize: '1.3rem' }}></i>
+            </span>
+            Chủ đề Q&A nóng
+            </h4>
           {loading.hotqa ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />

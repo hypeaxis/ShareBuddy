@@ -1078,13 +1078,14 @@ const ProfilePage: React.FC = () => {
                       style={{ transform: 'scale(1.3)' }}
                     />
                   </div>
-                </Form.Group>
+                
                   {settings.email_notifications && (
                     <Alert variant="info" className="small mb-0">
                       <i className="bi bi-info-circle me-2"></i>
                       Bạn sẽ nhận email về: tài liệu mới, bình luận, lượt theo dõi, và thông báo quan trọng
                     </Alert>
                   )}
+                </Form.Group>
                 
                 <Form.Group className="mb-3">
                   <div className="d-flex justify-content-between align-items-center py-2 border-bottom">

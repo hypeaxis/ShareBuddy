@@ -192,97 +192,140 @@ const VerifiedAuthorProgressPage: React.FC = () => {
 
   return (
     <Container className="py-4" style={{ marginTop: '80px', maxWidth: '900px' }}>
-      <Card className="mb-4">
-        <Card.Header className="bg-primary text-white">
-          <h4 className="mb-0">
-            <i className="bi bi-award me-2"></i>
-            Tiến độ trở thành Tác giả uy tín
-          </h4>
+      <Card className="mb-4 shadow-sm border-0">
+        <Card.Header className="bg-gradient-primary text-white d-flex align-items-center" style={{ background: 'linear-gradient(90deg, #007bff 0%, #00c6ff 100%)' }}>
+          <i className="bi bi-award-fill me-3 fs-2"></i>
+          <div>
+        <h4 className="mb-0">Tiến độ trở thành Tác giả uy tín</h4>
+        <small className="text-white-50">Theo dõi trạng thái và nhận badge xanh</small>
+          </div>
         </Card.Header>
         <Card.Body>
           {progress.eligibleForVerification ? (
-            <Alert variant="success">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <i className="bi bi-check-circle-fill me-2"></i>
-                  <strong>Chúc mừng!</strong> Bạn đã đủ tiêu chuẩn để trở thành Tác giả uy tín!
-                </div>
-                <Button 
-                  variant="success" 
-                  onClick={handleRequestVerification}
-                  disabled={verifying}
-                >
-                  {verifying ? (
-                    <>
-                      <Spinner size="sm" animation="border" className="me-2" />
-                      Đang xử lý...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-award me-2"></i>
-                      Nhận Badge ngay
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Alert>
+        <Alert variant="success" className="d-flex align-items-center gap-3 py-3 px-4 mb-4 shadow-sm border-0">
+          <i className="bi bi-patch-check-fill text-success fs-2"></i>
+          <div className="flex-grow-1">
+            <strong>Chúc mừng!</strong> Bạn đã đủ tiêu chuẩn để trở thành Tác giả uy tín!
+          </div>
+          <Button 
+            variant="success" 
+            onClick={handleRequestVerification}
+            disabled={verifying}
+            className="d-flex align-items-center gap-2 px-4 py-2"
+            style={{ minWidth: 170 }}
+          >
+            {verifying ? (
+          <>
+            <Spinner size="sm" animation="border" className="me-2" />
+            Đang xử lý...
+          </>
+            ) : (
+          <>
+            <i className="bi bi-award"></i>
+            Nhận Badge ngay
+          </>
+            )}
+          </Button>
+        </Alert>
           ) : (
-            <Alert variant="info">
-              <h6>Về huy hiệu Tác giả uy tín:</h6>
-              <p className="mb-2">
-                Huy hiệu Tác giả uy tín được cấp <strong>tự động</strong> khi bạn đáp ứng đủ tất cả tiêu chuẩn bên dưới.
-              </p>
-              <p className="mb-0">
-                <strong>Lợi ích:</strong> Badge xanh bên cạnh tên, tăng uy tín, được ưu tiên trong tìm kiếm.
-              </p>
-            </Alert>
+        <Alert variant="info" className="d-flex align-items-center gap-3 py-3 px-4 mb-4 shadow-sm border-0">
+          <i className="bi bi-info-circle-fill text-primary fs-2"></i>
+          <div>
+            <h6 className="mb-1">Về huy hiệu Tác giả uy tín</h6>
+            <p className="mb-1">
+          Huy hiệu Tác giả uy tín được cấp <strong>tự động</strong> khi bạn đáp ứng đủ tất cả tiêu chuẩn bên dưới.
+            </p>
+            <p className="mb-0">
+          <i className="bi bi-star-fill text-warning me-1"></i>
+          <strong>Lợi ích:</strong> Badge xanh bên cạnh tên, tăng uy tín, được ưu tiên trong tìm kiếm.
+            </p>
+          </div>
+        </Alert>
           )}
 
           <div className="mb-4">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="mb-0">Tổng quan</h6>
-              <span className="text-muted">{metCount}/{totalCount} tiêu chí đạt</span>
-            </div>
-            <ProgressBar 
-              now={overallProgress} 
-              variant={progress.eligibleForVerification ? 'success' : 'primary'}
-              style={{ height: '12px' }}
-            />
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <div className="d-flex align-items-center gap-2">
+            <i className="bi bi-bar-chart-steps text-primary"></i>
+            <h6 className="mb-0">Tổng quan</h6>
+          </div>
+          <span className="text-muted">
+            <i className="bi bi-check2-circle text-success me-1"></i>
+            {metCount}/{totalCount} tiêu chí đạt
+          </span>
+        </div>
+        <ProgressBar 
+          now={overallProgress} 
+          variant={progress.eligibleForVerification ? 'success' : 'primary'}
+          style={{ height: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
+          animated
+        />
           </div>
         </Card.Body>
       </Card>
 
-      <Row>
-        <Col md={6}>
+      <Row xs={1} md={2} className="g-4">
+        <Col>
           {renderCriteriaCard(
-            'bi-envelope-check',
-            'Email đã xác minh',
-            progress.criteria.emailVerified,
-            'boolean'
+        'bi-envelope-check',
+        'Email đã xác minh',
+        progress.criteria.emailVerified,
+        'boolean'
           )}
         </Col>
-        <Col md={6}>
+        <Col>
           {renderCriteriaCard(
-            'bi-file-earmark-text',
-            'Tổng số tài liệu',
-            progress.criteria.totalDocuments
+        'bi-file-earmark-text',
+        'Tổng số tài liệu',
+        progress.criteria.totalDocuments
           )}
         </Col>
-        <Col md={6}>
+        <Col>
           {renderCriteriaCard(
-            'bi-star-fill',
-            'Tài liệu 5 sao',
-            progress.criteria.fiveStarDocuments
+        'bi-star-fill',
+        'Tài liệu 5 sao',
+        progress.criteria.fiveStarDocuments
           )}
         </Col>
-        <Col md={6}>
+        <Col>
           {renderCriteriaCard(
-            'bi-download',
-            'Tổng lượt tải xuống',
-            progress.criteria.totalDownloads
+        'bi-download',
+        'Tổng lượt tải xuống',
+        progress.criteria.totalDownloads
           )}
         </Col>
       </Row>
+      <style>
+        {`
+          .card.mb-3 {
+        background: linear-gradient(120deg, #032f5eff 60%, #044188ff 100%);
+        border-radius: 1.2rem !important;
+        box-shadow: 0 4px 24px rgba(0, 123, 255, 0.07);
+        transition: transform 0.15s;
+          }
+          .card.mb-3:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(0, 123, 255, 0.13);
+          }
+          .card.mb-3 .badge-success {
+        background: linear-gradient(90deg, #00c851 0%, #33b5e5 100%);
+        color: #fff;
+        font-size: 0.95em;
+          }
+          .card.mb-3 .progress-bar {
+        background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+          }
+          .card.mb-3.border-success {
+        border-width: 2px !important;
+        border-color: #00c851 !important;
+          }
+          @media (max-width: 767px) {
+        .card.mb-3 {
+          margin-bottom: 1.5rem !important;
+        }
+          }
+        `}
+      </style>
 
       <Card className="mt-3 border-0">
         <Card.Body>

@@ -74,23 +74,6 @@ const Sidebar: React.FC = () => {
           </>
         )}
 
-        {/* Admin Navigation */}
-        {isAuthenticated && user?.role === 'admin' && (
-          <>
-            <hr className="my-2" />
-            <Nav.Item>
-              <Nav.Link
-                as={Link}
-                to="/admin"
-                className={isActive('/admin') ? 'active' : ''}
-              >
-                <i className="bi bi-gear me-2"></i>
-                Quản trị
-              </Nav.Link>
-            </Nav.Item>
-          </>
-        )}
-
         {/* Purchase Credits - Prominent CTA at bottom */}
         {isAuthenticated && (
           <div className="mt-auto pt-3">

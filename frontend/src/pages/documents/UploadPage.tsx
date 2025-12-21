@@ -222,38 +222,45 @@ const UploadPage: React.FC = () => {
               <Form onSubmit={handleSubmit}>
                 {/* File Upload Area */}
                 <div 
-                  className={`border-2 border-dashed rounded p-4 mb-4 text-center position-relative ${
-                    dragActive ? 'border-primary bg-light' : 'border-secondary'
+                  className={`rounded p-4 mb-4 text-center position-relative ${
+                  dragActive ? 'border-primary' : 'border-secondary'
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
-                  style={{ minHeight: '150px', cursor: 'pointer' }}
+                  style={{
+                  minHeight: '150px',
+                  cursor: 'pointer',
+                  borderWidth: '2px',
+                  borderStyle: 'dashed dotted',
+                  borderColor: dragActive ? '#0d6efd' : '#ced4da',
+                  transition: 'border-color 0.2s'
+                  }}
                   onClick={() => document.getElementById('fileInput')?.click()}
                 >
                   {formData.file ? (
-                    <div className="d-flex align-items-center justify-content-center">
-                      <FaFileAlt className="me-2 text-primary" size={24} />
-                      <div>
-                        <strong>{formData.file.name}</strong>
-                        <br />
-                        <small className="text-muted">{formatFileSize(formData.file.size)}</small>
-                      </div>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <FaFileAlt className="me-2 text-primary" size={24} />
+                    <div>
+                    <strong>{formData.file.name}</strong>
+                    <br />
+                    <small className="text-muted">{formatFileSize(formData.file.size)}</small>
                     </div>
+                  </div>
                   ) : (
-                    <>
-                      <FaUpload size={48} className="text-muted mb-2" />
-                      <p className="mb-2">Kéo thả file vào đây hoặc nhấn để chọn</p>
-                      <p className="text-muted small">Hỗ trợ: PDF, DOC, DOCX, PPT, PPTX (tối đa 10MB)</p>
-                    </>
+                  <>
+                    <FaUpload size={48} className="text-muted mb-2" />
+                    <p className="mb-2">Kéo thả file vào đây hoặc nhấn để chọn</p>
+                    <p className="text-muted small">Hỗ trợ: PDF, DOC, DOCX, PPT, PPTX (tối đa 10MB)</p>
+                  </>
                   )}
                   <input
-                    id="fileInput"
-                    type="file"
-                    className="d-none"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx"
-                    onChange={handleFileChange}
+                  id="fileInput"
+                  type="file"
+                  className="d-none"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx"
+                  onChange={handleFileChange}
                   />
                 </div>
 
@@ -331,7 +338,6 @@ const UploadPage: React.FC = () => {
 
                 {/* Credit Reward Notification */}
                 <Alert variant="success" className="d-flex align-items-center mb-3">
-                  <FaCheckCircle className="me-2" />
                   <span>💰 Bạn sẽ nhận được 1 credit với mỗi tài liệu tải lên!</span>
                 </Alert>
 
@@ -358,35 +364,6 @@ const UploadPage: React.FC = () => {
                     placeholder="VD: toán học, giáo trình, đại học"
                   />
                 </Form.Group>
-
-                {/* Settings */}
-                <Card className="border-light mb-4">
-                  <Card.Header className="bg-light">
-                    <h6 className="mb-0">Cài đặt tài liệu</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    <Form.Check
-                      type="switch"
-                      id="isPublic"
-                      name="isPublic"
-                      label="Công khai (hiển thị với mọi người)"
-                      checked={formData.isPublic}
-                      onChange={handleInputChange}
-                      className="mb-2"
-                    />
-                    <Form.Check
-                      type="switch"
-                      id="isPremium"
-                      name="isPremium"
-                      label="Tài liệu premium (chất lượng cao)"
-                      checked={formData.isPremium}
-                      onChange={handleInputChange}
-                    />
-                    <small className="text-muted">
-                      Tài liệu premium sẽ được ưu tiên hiển thị và có badge đặc biệt
-                    </small>
-                  </Card.Body>
-                </Card>
 
                 {/* Submit Button */}
                 <div className="d-grid gap-2">
