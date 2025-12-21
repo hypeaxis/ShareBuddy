@@ -184,8 +184,14 @@ const generateThumbnailInternal = async (documentId) => {
     const thumbPath = path.join(thumbDir, thumbName);
     console.log(`${logPrefix} 🖼️ Generating thumbnail with ImageMagick...`);
 
-    // Use ImageMagick to generate thumbnail
-    const command = `convert -density 150 "${tempPdfPath}[0]" -resize ${THUMBNAIL_WIDTH}x -quality 90 "${thumbPath}"`;
+    // Use ImageMagick to generate thumbnail with white background
+    // -density 150: High quality rendering
+    // [0]: First page only
+    // -background white: Set white background
+    // -alpha remove: Remove transparency and flatten to background
+    // -resize 600x: Resize to width 600px, maintain aspect ratio
+    // -quality 90: High quality PNG
+    const command = `convert -density 150 "${tempPdfPath}[0]" -background white -alpha remove -resize ${THUMBNAIL_WIDTH}x -quality 90 "${thumbPath}"`;
     
     console.log(`${logPrefix} 🔧 Running: ${command}`);
     const { stdout, stderr } = await execAsync(command);
