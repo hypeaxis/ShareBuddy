@@ -3,7 +3,7 @@
  */
 
 const { PDFDocument } = require('pdf-lib');
-const { createCanvas } = require('canvas');
+const { createCanvas, Image } = require('canvas');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
@@ -184,6 +184,18 @@ class NodeCanvasFactory {
     canvasAndContext.canvas = null;
     canvasAndContext.context = null;
   }
+}
+
+// --- Image class for embedded images in PDFs ---
+class NodeCanvasImage extends Image {
+  constructor(width, height) {
+    super(width, height);
+  }
+}
+
+// Set global Image for pdfjs-dist
+if (typeof global.Image === 'undefined') {
+  global.Image = NodeCanvasImage;
 }
 
 // FIX: Added proper response
