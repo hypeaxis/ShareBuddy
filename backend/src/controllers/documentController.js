@@ -447,24 +447,62 @@ const uploadDocument = async (req, res, next) => {
       }
     }
     
-    // --- AUTOMATIC GENERATION ---
+    // --- AUTOMATIC GENERATION WITH RETRY ---
     console.log(`[${requestId}] 🖼️ Generating preview & thumbnail...`);
     
-    // Run concurrently
-    Promise.allSettled([
-        previewController.generatePreviewInternal(document.document_id),
-        previewController.generateThumbnailInternal(document.document_id)
-    ]).then(results => {
-        const [previewRes, thumbRes] = results;
-        if(previewRes.status === 'fulfilled' && previewRes.value.success) 
-            console.log(`[${requestId}] ✅ Preview generated`);
-        else 
-            console.error(`[${requestId}] ❌ Preview failed`);
+    // Helper function to retry with exponential backoff
+    const retryGeneration = async (generationFn, name, maxRetries = 3) => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const result = await generationFn();
+          if (result.success) {
+            console.log(`[${requestId}] ✅ ${name} generated (attempt ${attempt}/${maxRetries})`);
+            return result;
+          } else {
+            console.warn(`[${requestId}] ⚠️ ${name} failed on attempt ${attempt}/${maxRetries}: ${result.error}`);
+            if (attempt < maxRetries) {
+              const delay = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
+              console.log(`[${requestId}] 🔄 Retrying ${name} in ${delay}ms...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+        } catch (error) {
+          console.error(`[${requestId}] ❌ ${name} exception on attempt ${attempt}/${maxRetries}:`, error.message);
+          if (attempt === maxRetries) {
+            return { success: false, error: error.message };
+          }
+          const delay = Math.pow(2, attempt) * 500;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      return { success: false, error: `Max retries (${maxRetries}) exceeded` };
+    };
 
-        if(thumbRes.status === 'fulfilled' && thumbRes.value.success) 
-            console.log(`[${requestId}] ✅ Thumbnail generated`);
-        else 
-            console.error(`[${requestId}] ❌ Thumbnail failed`);
+    // Run generation in background with retries
+    setImmediate(async () => {
+      try {
+        const [previewResult, thumbResult] = await Promise.all([
+          retryGeneration(
+            () => previewController.generatePreviewInternal(document.document_id),
+            'Preview',
+            3
+          ),
+          retryGeneration(
+            () => previewController.generateThumbnailInternal(document.document_id),
+            'Thumbnail',
+            3
+          )
+        ]);
+
+        if (!previewResult.success) {
+          console.error(`[${requestId}] ❌ Preview generation ultimately failed: ${previewResult.error}`);
+        }
+        if (!thumbResult.success) {
+          console.error(`[${requestId}] ❌ Thumbnail generation ultimately failed: ${thumbResult.error}`);
+        }
+      } catch (error) {
+        console.error(`[${requestId}] ⚠️ Unexpected error in background generation:`, error);
+      }
     });
 
     // Redis Moderation

@@ -67,17 +67,29 @@ const getRawPdfBytes = async (document) => {
 
 // --- INTERNAL: Generate 10-page Preview ---
 const generatePreviewInternal = async (documentId) => {
+  const logPrefix = `[Preview-${documentId}]`;
   try {
+    console.log(`${logPrefix} 🎬 Starting preview generation...`);
+    
     const docResult = await query('SELECT * FROM documents WHERE document_id = $1', [documentId]);
-    if (docResult.rows.length === 0) return { success: false, error: 'Not found' };
+    if (docResult.rows.length === 0) {
+      console.error(`${logPrefix} ❌ Document not found in database`);
+      return { success: false, error: 'Document not found' };
+    }
     const document = docResult.rows[0];
+    console.log(`${logPrefix} 📄 Document found: ${document.title}`);
 
     const pdfRes = await getRawPdfBytes(document);
-    if (!pdfRes.success) return pdfRes;
+    if (!pdfRes.success) {
+      console.error(`${logPrefix} ❌ Failed to get PDF bytes: ${pdfRes.error}`);
+      return pdfRes;
+    }
+    console.log(`${logPrefix} ✅ PDF bytes extracted (${pdfRes.buffer.length} bytes)`);
 
     const pdfDoc = await PDFDocument.load(pdfRes.buffer);
     const totalPages = pdfDoc.getPageCount();
     const actualPreviewPages = Math.min(totalPages, PREVIEW_PAGE_LIMIT);
+    console.log(`${logPrefix} 📖 Total pages: ${totalPages}, Preview pages: ${actualPreviewPages}`);
 
     const previewPdf = await PDFDocument.create();
     const pages = await previewPdf.copyPages(pdfDoc, Array.from({ length: actualPreviewPages }, (_, i) => i));
@@ -93,14 +105,30 @@ const generatePreviewInternal = async (documentId) => {
       });
       previewPdf.addPage(page);
     });
+    console.log(`${logPrefix} ✅ Preview pages prepared with watermark`);
 
     const previewBytes = await previewPdf.save();
+    console.log(`${logPrefix} ✅ Preview PDF generated (${previewBytes.length} bytes)`);
 
     const previewDir = path.join(process.cwd(), 'uploads', 'previews');
     await fs.mkdir(previewDir, { recursive: true });
+    
     const previewFileName = `preview_${documentId}.pdf`;
     const previewPathFull = path.join(previewDir, previewFileName);
+    console.log(`${logPrefix} 💾 Writing to: ${previewPathFull}`);
+    
     await fs.writeFile(previewPathFull, previewBytes);
+    
+    // Force sync to disk
+    const fileHandle = await fs.open(previewPathFull, 'r+');
+    await fileHandle.sync();
+    await fileHandle.close();
+    console.log(`${logPrefix} ✅ File written and synced to disk`);
+    
+    // Verify with small delay for Docker
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const stats = await fs.stat(previewPathFull);
+    console.log(`${logPrefix} ✅ File verified: ${stats.size} bytes`);
     
     const dbPreviewUrl = `/uploads/previews/${previewFileName}`;
 
@@ -108,62 +136,122 @@ const generatePreviewInternal = async (documentId) => {
       `UPDATE documents SET preview_url = $1, preview_pages = $2, preview_generated = TRUE WHERE document_id = $3`,
       [dbPreviewUrl, actualPreviewPages, documentId]
     );
+    console.log(`${logPrefix} ✅ Database updated`);
 
+    console.log(`${logPrefix} 🎉 Preview generation completed successfully`);
     return { success: true, previewUrl: dbPreviewUrl };
   } catch (error) {
-    console.error('Preview Gen Error:', error);
-    return { success: false, error: error.message };
+    console.error(`${logPrefix} ❌ PREVIEW GENERATION FAILED:`);
+    console.error(`${logPrefix} Error: ${error.message}`);
+    console.error(`${logPrefix} Stack:`, error.stack);
+    return { success: false, error: error.message, details: error.stack };
   }
 };
 
 // --- INTERNAL: Generate Thumbnail (Page 1 -> PNG) ---
 const generateThumbnailInternal = async (documentId) => {
+  const logPrefix = `[Thumbnail-${documentId}]`;
   try {
+    console.log(`${logPrefix} 🎬 Starting thumbnail generation...`);
+    
     const docResult = await query('SELECT * FROM documents WHERE document_id = $1', [documentId]);
-    if (docResult.rows.length === 0) return { success: false, error: 'Not found' };
+    if (docResult.rows.length === 0) {
+      console.error(`${logPrefix} ❌ Document not found in database`);
+      return { success: false, error: 'Document not found' };
+    }
     const document = docResult.rows[0];
+    console.log(`${logPrefix} 📄 Document found: ${document.title}, Type: ${document.file_type}`);
 
     const pdfRes = await getRawPdfBytes(document);
-    if (!pdfRes.success) return pdfRes;
+    if (!pdfRes.success) {
+      console.error(`${logPrefix} ❌ Failed to get PDF bytes: ${pdfRes.error}`);
+      return pdfRes;
+    }
+    console.log(`${logPrefix} ✅ PDF bytes extracted (${pdfRes.buffer.length} bytes)`);
 
     const uint8Array = new Uint8Array(pdfRes.buffer);
+    console.log(`${logPrefix} 🔄 Loading PDF with pdfjs-dist...`);
     const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
     const pdfDocument = await loadingTask.promise;
+    console.log(`${logPrefix} ✅ PDF loaded, pages: ${pdfDocument.numPages}`);
     
+    console.log(`${logPrefix} 🎨 Rendering page 1...`);
     const page = await pdfDocument.getPage(1);
     const viewport = page.getViewport({ scale: 1.0 });
+    console.log(`${logPrefix} 📐 Original viewport: ${viewport.width}x${viewport.height}`);
     
     const scale = THUMBNAIL_WIDTH / viewport.width;
     const scaledViewport = page.getViewport({ scale });
+    console.log(`${logPrefix} 📐 Scaled viewport: ${scaledViewport.width}x${scaledViewport.height}, scale: ${scale}`);
 
     const canvas = createCanvas(scaledViewport.width, scaledViewport.height);
     const context = canvas.getContext('2d');
+    console.log(`${logPrefix} 🖼️ Canvas created`);
 
     await page.render({
       canvasContext: context,
       viewport: scaledViewport,
       canvasFactory: new NodeCanvasFactory(),
     }).promise;
+    console.log(`${logPrefix} ✅ Page rendered to canvas`);
 
     const buffer = canvas.toBuffer('image/png');
+    console.log(`${logPrefix} ✅ PNG buffer created (${buffer.length} bytes)`);
+    
     const thumbDir = path.join(process.cwd(), 'uploads', 'thumbnails');
+    console.log(`${logPrefix} 📁 Thumbnail directory: ${thumbDir}`);
+    
     await fs.mkdir(thumbDir, { recursive: true });
+    console.log(`${logPrefix} ✅ Directory ensured`);
+    
     const thumbName = `thumb_${documentId}.png`;
     const thumbPath = path.join(thumbDir, thumbName);
+    console.log(`${logPrefix} 💾 Writing to: ${thumbPath}`);
+    
+    // Write file with sync to ensure it's flushed to disk
     await fs.writeFile(thumbPath, buffer);
+    
+    // Force sync to disk (important for Docker volumes)
+    const fileHandle = await fs.open(thumbPath, 'r+');
+    await fileHandle.sync(); // fsync to ensure data is written to disk
+    await fileHandle.close();
+    
+    console.log(`${logPrefix} ✅ File written and synced to disk`);
+    
+    // Verify file was written with a small delay for Docker volume sync
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+      const stats = await fs.stat(thumbPath);
+      console.log(`${logPrefix} ✅ File verified on disk: ${stats.size} bytes`);
+      
+      if (stats.size !== buffer.length) {
+        console.warn(`${logPrefix} ⚠️ File size mismatch! Expected: ${buffer.length}, Got: ${stats.size}`);
+        throw new Error(`File size mismatch: expected ${buffer.length}, got ${stats.size}`);
+      }
+    } catch (statError) {
+      console.error(`${logPrefix} ⚠️ File verification failed:`, statError.message);
+      throw new Error(`File verification failed: ${statError.message}`);
+    }
 
     const dbThumbUrl = `/uploads/thumbnails/${thumbName}`;
+    console.log(`${logPrefix} 🗄️ Updating database with: ${dbThumbUrl}`);
 
     await query(
       'UPDATE documents SET thumbnail_url = $1 WHERE document_id = $2',
       [dbThumbUrl, documentId]
     );
+    console.log(`${logPrefix} ✅ Database updated`);
 
+    console.log(`${logPrefix} 🎉 Thumbnail generation completed successfully`);
     return { success: true, thumbnailUrl: dbThumbUrl };
 
   } catch (error) {
-    console.error('Thumbnail Gen Error:', error);
-    return { success: false, error: error.message };
+    console.error(`${logPrefix} ❌ THUMBNAIL GENERATION FAILED:`);
+    console.error(`${logPrefix} Error name: ${error.name}`);
+    console.error(`${logPrefix} Error message: ${error.message}`);
+    console.error(`${logPrefix} Error stack:`, error.stack);
+    return { success: false, error: error.message, details: error.stack };
   }
 };
 
