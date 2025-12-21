@@ -102,6 +102,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //Static files in docker - serve public assets
+
+const uploadPath = path.join(process.cwd(), 'uploads');
+
 app.use(
   '/uploads',
   express.static(uploadPath, {
