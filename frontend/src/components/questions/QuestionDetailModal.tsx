@@ -28,7 +28,7 @@ interface Answer {
     username: string;
     name: string;
     avatar: string | null;
-    isVerified: boolean;
+    isVerifiedAuthor: boolean;
   };
   createdAt: string;
 }
@@ -47,7 +47,7 @@ interface QuestionDetail {
     username: string;
     name: string;
     avatar: string | null;
-    isVerified: boolean;
+    isVerifiedAuthor: boolean;
   };
   createdAt: string;
 }
@@ -231,8 +231,8 @@ const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({ show, onHide,
                     <p style={{ whiteSpace: 'pre-wrap' }}>{question.content}</p>
                     <div className="d-flex justify-content-between align-items-center text-muted small mt-3 border-top pt-2">
                       <div>
-                        Hỏi bởi <strong>{question.author.name}</strong>
-                        {question.author.isVerified && <VerifiedBadge />}
+                        Hỏi bởi <strong>{question.author.name}</strong> 
+                        {question.author.isVerifiedAuthor && <VerifiedBadge />}
                       </div>
                       <span>{new Date(question.createdAt).toLocaleString('vi-VN')}</span>
                     </div>
@@ -292,7 +292,7 @@ const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({ show, onHide,
                         <div className="d-flex justify-content-between align-items-center text-muted small">
                           <div>
                             Trả lời bởi <strong>{answer.author.name}</strong>
-                            {answer.author.isVerified && <VerifiedBadge />}
+                            {answer.author.isVerifiedAuthor && <VerifiedBadge />}
                           </div>
                           <span>{new Date(answer.createdAt).toLocaleString('vi-VN')}</span>
                         </div>
