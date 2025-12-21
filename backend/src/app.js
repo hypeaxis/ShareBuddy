@@ -13,6 +13,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const session = require('express-session');
 const passport = require('./config/passport');
+const paymentController = require('./controllers/paymentController');
 
 // Import middleware and routes
 const errorHandler = require('./middleware/errorHandler');
@@ -29,7 +30,6 @@ const verifiedAuthorRoutes = require('./routes/verifiedAuthorRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const creditRoutes = require('./routes/creditRoutes');
-const webhookRoutes = require('./routes/webhookRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const feedRoutes = require('./routes/feedRoutes');
@@ -81,7 +81,11 @@ app.use(helmet({
 app.use(compression());
 app.use(morgan('combined'));
 
-app.use('/api/payment/webhook', express.raw({ type: '*/*' })); // Raw body for Stripe webhooks
+app.post(
+  '/api/payment/webhook',
+  express.raw({ type: 'application/json' }),
+  paymentController.handleWebhook
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -129,7 +133,6 @@ app.use('/api/verified-author', verifiedAuthorRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/credits', creditRoutes);
-app.use('/api/webhooks', webhookRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/feed', feedRoutes);

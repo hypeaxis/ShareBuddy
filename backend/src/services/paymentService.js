@@ -166,6 +166,8 @@ const handlePaymentSuccess = async (paymentIntent) => {
         [paymentIntent.id]
       );
 
+      console.log('📦 TX result:', txResult.rows);
+
       if (txResult.rows.length === 0) {
         throw new Error('Transaction not found');
       }
@@ -190,6 +192,7 @@ const handlePaymentSuccess = async (paymentIntent) => {
           `Purchased ${credits_purchased} credits via Stripe`
         ]
       );
+      console.log('✅ PaymentIntent ID:', paymentIntent.id);
 
       // Create notification
       await client.query(
