@@ -255,17 +255,19 @@ const generateThumbnailInternal = async (documentId) => {
   }
 };
 
-// --- Node Canvas Factory for PDF.js ---
+// --- Node Canvas Factory for PDF.js with Image support ---
 class NodeCanvasFactory {
   create(width, height) {
     const canvas = createCanvas(width, height);
     const context = canvas.getContext("2d");
     return { canvas, context };
   }
+  
   reset(canvasAndContext, width, height) {
     canvasAndContext.canvas.width = width;
     canvasAndContext.canvas.height = height;
   }
+  
   destroy(canvasAndContext) {
     canvasAndContext.canvas.width = 0;
     canvasAndContext.canvas.height = 0;
@@ -274,9 +276,25 @@ class NodeCanvasFactory {
   }
 }
 
-// Set global Image for pdfjs-dist - use canvas's Image class directly
+// CRITICAL FIX: Set up global DOM-like environment for pdfjs-dist
+// pdfjs-dist expects these to be available globally in Node.js
+if (typeof global.DOMMatrix === 'undefined') {
+  // Polyfill DOMMatrix if needed
+  global.DOMMatrix = class DOMMatrix {
+    constructor() {
+      this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.e = 0; this.f = 0;
+    }
+  };
+}
+
+// Set canvas's Image class globally - this is critical for embedded images in PDFs
 if (typeof global.Image === 'undefined') {
   global.Image = Image;
+}
+
+// Also set Canvas globally
+if (typeof global.Canvas === 'undefined') {
+  global.Canvas = createCanvas(0, 0).constructor;
 }
 
 // FIX: Added proper response
