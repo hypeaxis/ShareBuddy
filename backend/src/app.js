@@ -69,6 +69,10 @@ app.post(
   paymentController.handleWebhook
 );
 
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Middleware setup
 // CORS configuration - Must be before other middleware
 app.use(cors({
@@ -86,10 +90,6 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(morgan('combined'));
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration for OAuth
 app.use(session({
