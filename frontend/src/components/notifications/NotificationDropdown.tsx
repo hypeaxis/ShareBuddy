@@ -220,15 +220,6 @@ const NotificationDropdown: React.FC = () => {
                 </ListGroup.Item>
               ))}
             </ListGroup>
-            <div className="text-center border-top py-2">
-              <Link 
-                to="/notifications" 
-                className="btn btn-sm btn-link text-decoration-none"
-                onClick={() => setShowDropdown(false)}
-              >
-                Xem tất cả thông báo
-              </Link>
-            </div>
           </>
         )}
       </Dropdown.Menu>
