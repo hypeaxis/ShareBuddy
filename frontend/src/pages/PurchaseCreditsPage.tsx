@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Spinner, Alert, Form } from 'react-bootstrap';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement  } from '@stripe/react-stripe-js';
 import apiClient from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -62,6 +62,36 @@ const CreditSummary: React.FC<{ creditPackage: CreditPackage; currency: 'usd' | 
   );
 };
 
+const CARD_OPTIONS = {
+  style: {
+    base: {
+      color: "#495057", // Màu chữ khớp với Bootstrap
+      fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+      fontSmoothing: "antialiased",
+      fontSize: "16px",
+      "::placeholder": {
+        color: "#adb5bd"
+      }
+    },
+    invalid: {
+      color: "#dc3545",
+      iconColor: "#dc3545"
+    }
+  }
+};
+
+// Helper component để bọc Stripe Element trông giống Bootstrap Input
+const StripeInputWrapper: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <Form.Group className="mb-3">
+    <Form.Label className="small text-muted mb-1 fw-bold text-uppercase" style={{ fontSize: '0.75rem' }}>{label}</Form.Label>
+    <div className="form-control d-flex align-items-center" style={{ height: '45px', backgroundColor: '#fff' }}>
+      <div className="w-100">
+        {children}
+      </div>
+    </div>
+  </Form.Group>
+);
+
 const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess: (paymentIntentId: string) => void; currency: 'usd' | 'vnd' }> = ({ 
   selectedPackage, 
   onSuccess,
@@ -79,8 +109,8 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
       return;
     }
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) return;
+    const cardNumberElement = elements.getElement(CardNumberElement);
+    if (!cardNumberElement) return; 
 
     setProcessing(true);
     setError('');
@@ -99,7 +129,7 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
 
       // Confirm payment
       const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElement }
+        payment_method: { card: cardNumberElement }
       });
 
       if (result.error) {
@@ -128,27 +158,22 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
     <form onSubmit={handleSubmit}>
       {error && <Alert variant="danger">{error}</Alert>}
       
-      <div className="mb-3">
-        <label className="form-label">Card Details</label>
-        <div className="border rounded p-3">
-          <CardElement
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
-                  },
-                },
-                invalid: {
-                  color: '#9e2146',
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
+      <StripeInputWrapper label="Card Number">
+        <CardNumberElement options={{...CARD_OPTIONS, showIcon: true}} />
+      </StripeInputWrapper>
+
+      <Row>
+        <Col xs={6}>
+          <StripeInputWrapper label="Expiration">
+            <CardExpiryElement options={CARD_OPTIONS} />
+          </StripeInputWrapper>
+        </Col>
+        <Col xs={6}>
+          <StripeInputWrapper label="CVC / CWW">
+            <CardCvcElement options={CARD_OPTIONS} />
+          </StripeInputWrapper>
+        </Col>
+      </Row>
 
       <Button 
         type="submit"
@@ -218,8 +243,12 @@ const PurchaseCreditsPage: React.FC = () => {
       // Sau khi verify xong, chắc chắn DB đã update, lúc này mới fetch user
       await dispatch(getCurrentUser());
       
-      alert('Thanh toán thành công! Credits đã được cộng vào tài khoản của bạn.');
-      navigate('/profile');
+      navigate('/profile', { 
+        state: { 
+          paymentSuccess: true,
+          addedCredits: selectedPackage ? selectedPackage.credits + selectedPackage.bonus_credits : 0
+        } 
+      });
       
     } catch (err) {
       console.error('Verify failed but payment likely succeeded', err);

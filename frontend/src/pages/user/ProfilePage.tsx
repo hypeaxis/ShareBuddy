@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
 import { creditService } from '../../services/creditService';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ModerationStatusBadge from '../../components/ModerationStatusBadge';
 import apiClient from '../../services/api';
@@ -95,6 +95,32 @@ const ProfilePage: React.FC = () => {
 
   // Check if viewing own profile
   const isOwnProfile = currentUser?.id === profile?.id;
+
+  const location = useLocation();
+
+  // Handle payment success message from Purchase page
+  useEffect(() => {
+    // Kiểm tra nếu có state paymentSuccess từ trang Purchase gửi sang
+    if (location.state && location.state.paymentSuccess) {
+      const addedCredits = location.state.addedCredits;
+      
+      // Hiện thông báo thành công của hệ thống (dùng state successMessage có sẵn)
+      setSuccessMessage(
+        addedCredits 
+          ? `Thanh toán thành công! Bạn đã nhận được ${addedCredits} credits.`
+          : 'Thanh toán thành công! Credits đã được cộng vào tài khoản.'
+      );
+      
+      // Tự động tắt sau 5s
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Xóa state để F5 không hiện lại (Optional - React Router tự xử lý history)
+      window.history.replaceState({}, document.title);
+      
+      // Chuyển tab sang Credits hoặc Lịch sử
+      setActiveTab('payment-history'); 
+    }
+  }, [location]);
 
   // Load user profile and data
   useEffect(() => {

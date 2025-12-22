@@ -50,16 +50,21 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
     const baseCredits = parseInt(pkg.credits);
     const bonusCredits = pkg.bonus_credits ? parseInt(pkg.bonus_credits) : 0;
     const totalCredits = baseCredits + bonusCredits;
-
-    let amount = 0;
     const selectedCurrency = currency?.toLowerCase() === 'vnd' ? 'vnd' : 'usd';
+
+    // 1. stripeAmount: Số tiền gửi sang Stripe để trừ thẻ (Luôn phải tính theo logic của Stripe)
+    let stripeAmount = 0;
+    // 2. dbAmount: Số tiền lưu vào Database để hiển thị lịch sử (Lưu giá gốc)
+    let dbAmount = 0;
+
     if (selectedCurrency === 'usd') {
-      amount = Math.round(pkg.price_usd * 100);
+      dbAmount = pkg.price_usd; // Lưu $5.00
+      stripeAmount = Math.round(pkg.price_usd * 100);
     } else {
-      // Stripe only supports some currencies for direct payment
-      // We convert VND to USD for Stripe and keep currency metadata as VND
-      amount = Math.round(pkg.price_vnd / 26300 * 100); // Rough conversion
+      dbAmount = pkg.price_vnd; 
+      stripeAmount = Math.round(pkg.price_vnd / 26300 * 100); 
     }
+
     // Get or create Stripe customer
     const userResult = await query(
       'SELECT email, username FROM users WHERE user_id = $1',
@@ -95,7 +100,7 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
 
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: stripeAmount,
       currency: 'usd', // Charge in USD, even for VND purchases
       customer: stripeCustomerId,
       metadata: {
@@ -104,7 +109,7 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
         credits: totalCredits.toString(),
         bonusCredits: bonusCredits.toString(),
         original_currency: selectedCurrency,
-        original_amount: selectedCurrency === 'usd' ? pkg.price_usd : pkg.price_vnd
+        original_amount: dbAmount.toString()
       },
       description: `Purchase ${totalCredits} credits (Includes ${bonusCredits} bonus) for ShareBuddy`
     });
@@ -114,13 +119,13 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
       `INSERT INTO payment_transactions 
        (user_id, stripe_payment_intent_id, stripe_customer_id, amount, currency, credits_purchased, payment_status)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [userId, paymentIntent.id, stripeCustomerId, amount / 100, selectedCurrency, totalCredits, 'pending']
+      [userId, paymentIntent.id, stripeCustomerId, dbAmount, selectedCurrency, totalCredits, 'pending']
     );
 
     return {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount: amount / 100,
+      amount: dbAmount,
       currency: selectedCurrency,
       credits: totalCredits,
       bonus: bonusCredits
@@ -210,12 +215,6 @@ const handlePaymentSuccess = async (paymentIntent) => {
          SET payment_status = 'succeeded', updated_at = NOW()
          WHERE payment_id = $1`,
         [payment_id]
-      );
-
-      // Add credits to user account
-      await client.query(
-        'UPDATE users SET credits = credits + $1 WHERE user_id = $2',
-        [credits_purchased, user_id]
       );
 
       // Create credit transaction record
@@ -328,13 +327,14 @@ const handleRefund = async (charge) => {
 
       // Create credit transaction record
       await client.query(
-        `INSERT INTO credit_transactions (user_id, amount, transaction_type, description)
-         VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO credit_transactions (user_id, amount, transaction_type, description, reference_id)
+         VALUES ($1, $2, $3, $4, $5)`,
         [
           user_id,
           -credits_purchased,
           'penalty',
-          `Refund: ${credits_purchased} credits deducted`
+          `Refund: ${credits_purchased} credits deducted`, 
+          paymentIntentId
         ]
       );
 
