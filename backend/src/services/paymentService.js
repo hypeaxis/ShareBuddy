@@ -158,27 +158,32 @@ const handlePaymentSuccess = async (paymentIntent) => {
   try {
     return await withTransaction(async (client) => {
       // Update payment transaction
-      const txResult = await client.query(
-        `UPDATE payment_transactions 
-         SET payment_status = 'succeeded', updated_at = NOW()
-         WHERE stripe_payment_intent_id = $1
-         RETURNING user_id, credits_purchased`,
+      const checkResult = await client.query(
+        `SELECT payment_status, user_id, credits_purchased 
+         FROM payment_transactions 
+         WHERE stripe_payment_intent_id = $1`,
         [paymentIntent.id]
       );
 
-      console.log('📦 TX result:', txResult.rows);
-
-      if (txResult.rows.length === 0) {
+      if (checkResult.rows.length === 0) {
         throw new Error('Transaction not found');
       }
 
-      const { payment_status, user_id, credits_purchased } = txResult.rows[0];
+      const { payment_status, user_id, credits_purchased } = checkResult.rows[0];
 
       // 2. If already succeeded, skip processing (IDEMPOTENT CHECK)
       if (payment_status === 'succeeded') {
         console.log(`⚠️ Payment ${paymentIntent.id} already processed. Skipping.`);
         return { success: true, alreadyProcessed: true };
       }
+
+      // 3. Update payment status to 'succeeded'
+      await client.query(
+        `UPDATE payment_transactions 
+         SET payment_status = 'succeeded', updated_at = NOW()
+         WHERE stripe_payment_intent_id = $1`,
+        [paymentIntent.id]
+      );
 
       // Add credits to user account
       await client.query(
