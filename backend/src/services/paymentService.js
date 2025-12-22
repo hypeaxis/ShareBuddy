@@ -47,7 +47,9 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
     }
 
     const pkg = packageResult.rows[0];
-    const totalCredits = pkg.credits + pkg.bonus_credits;
+    const baseCredits = parseInt(pkg.credits);
+    const bonusCredits = pkg.bonus_credits ? parseInt(pkg.bonus_credits) : 0;
+    const totalCredits = baseCredits + bonusCredits;
 
     let amount = 0;
     const selectedCurrency = currency?.toLowerCase() === 'vnd' ? 'vnd' : 'usd';
@@ -100,10 +102,11 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
         user_id: userId,
         package_id: packageId,
         credits: totalCredits.toString(),
+        bonusCredits: bonusCredits.toString(),
         original_currency: selectedCurrency,
         original_amount: selectedCurrency === 'usd' ? pkg.price_usd : pkg.price_vnd
       },
-      description: `Purchase ${totalCredits} credits for ShareBuddy`
+      description: `Purchase ${totalCredits} credits (Includes ${bonusCredits} bonus) for ShareBuddy`
     });
 
     // Save transaction to database
@@ -119,7 +122,8 @@ const createPaymentIntent = async (userId, packageId, currency = 'usd') => {
       paymentIntentId: paymentIntent.id,
       amount: amount / 100,
       currency: selectedCurrency,
-      credits: totalCredits
+      credits: totalCredits,
+      bonus: bonusCredits
     };
   } catch (error) {
     console.error('Create payment intent error:', error);
@@ -170,7 +174,7 @@ const handlePaymentSuccess = async (paymentIntent) => {
         throw new Error('Transaction not found');
       }
 
-      const { payment_status, user_id, credits_purchased } = checkResult.rows[0];
+      const { payment_id, payment_status, user_id, credits_purchased } = checkResult.rows[0];
 
       // 2. If already succeeded, skip processing (IDEMPOTENT CHECK)
       if (payment_status === 'succeeded') {
@@ -178,12 +182,34 @@ const handlePaymentSuccess = async (paymentIntent) => {
         return { success: true, alreadyProcessed: true };
       }
 
+      const duplicateCheck = await client.query(
+        `SELECT transaction_id FROM credit_transactions 
+         WHERE reference_id = $1 AND transaction_type = 'purchase'`,
+        [payment_id] // Truyền UUID vào đây => Hợp lệ
+      );
+
+      if (duplicateCheck.rows.length > 0) {
+        console.log(`⚠️ Credits already awarded for Payment UUID ${payment_id}. Skipping.`);
+
+      // Fix status cho đồng bộ nếu cần
+        if (payment_status !== 'succeeded') {
+             await client.query(
+                `UPDATE payment_transactions SET payment_status = 'succeeded', updated_at = NOW() 
+                 WHERE payment_id = $1`,
+                [payment_id]
+            );
+        }
+        return { success: true, alreadyProcessed: true };
+      }
+
+      console.log(`Processing payment UUID ${payment_id} for user ${user_id}.`);
+
       // 3. Update payment status to 'succeeded'
       await client.query(
         `UPDATE payment_transactions 
          SET payment_status = 'succeeded', updated_at = NOW()
-         WHERE stripe_payment_intent_id = $1`,
-        [paymentIntent.id]
+         WHERE payment_id = $1`,
+        [payment_id]
       );
 
       // Add credits to user account
@@ -194,13 +220,14 @@ const handlePaymentSuccess = async (paymentIntent) => {
 
       // Create credit transaction record
       await client.query(
-        `INSERT INTO credit_transactions (user_id, amount, transaction_type, description)
-         VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO credit_transactions (user_id, amount, transaction_type, description, reference_id)
+         VALUES ($1, $2, $3, $4, $5)`,
         [
           user_id,
           credits_purchased,
           'purchase',
-          `Purchased ${credits_purchased} credits via Stripe`
+          `Purchased ${credits_purchased} credits via Stripe`,
+          payment_id
         ]
       );
       console.log('✅ PaymentIntent ID:', paymentIntent.id);
@@ -333,7 +360,6 @@ const getPaymentHistory = async (userId, page = 1, limit = 10) => {
         currency,
         credits_purchased,
         payment_status,
-        payment_method,
         error_message,
         created_at
        FROM payment_transactions

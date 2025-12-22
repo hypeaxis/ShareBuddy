@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 interface Transaction {
   payment_id: string;                    
   stripe_payment_intent_id: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   credits_purchased: number;            
   payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded';              
@@ -99,11 +99,18 @@ const PaymentHistoryPage: React.FC = () => {
     });
   };
 
-  const formatAmount = (amount: number, currency: string) => {
-    if (currency === 'usd') {
-      return `$${amount.toFixed(2)}`;
+  const formatAmount = (amount: number | string, currency: string) => {
+     // Ép kiểu về số (Number)
+    const numAmount = Number(amount);
+
+    // Kiểm tra nếu không phải số hợp lệ
+    if (isNaN(numAmount)) return '0.00';
+
+    if (currency?.toLowerCase() === 'usd') {
+      return `$${numAmount.toFixed(2)}`;
     }
-    return `${amount.toLocaleString('vi-VN')} VND`;
+    // Format tiền Việt
+    return `${numAmount.toLocaleString('vi-VN')} VND`;
   };
 
   console.log('Current Transactions State:', transactions);
