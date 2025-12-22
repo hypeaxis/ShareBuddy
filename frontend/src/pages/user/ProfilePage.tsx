@@ -917,8 +917,8 @@ const ProfilePage: React.FC = () => {
                 )}
                 {isOwnProfile && (
                   <Button variant="primary" size="sm" onClick={() => navigate('/upload')}>
-                    <FaFileAlt className="me-1" />
-                    Tải lên mới
+                  <FaFileAlt className="me-1" />
+                  <span className="d-none d-sm-inline">Tải lên mới</span>
                   </Button>
                 )}
               </div>

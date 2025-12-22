@@ -159,17 +159,26 @@ const NotificationDropdown: React.FC = () => {
         )}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu className="notification-menu shadow" style={{ minWidth: '350px', maxWidth: '400px' }}>
+      <Dropdown.Menu
+        className="notification-menu shadow"
+        style={{
+          minWidth: '350px',
+          maxWidth: '400px',
+          right: 0,
+          left: 'auto'
+        }}
+        align="end"
+      >
         <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
           <h6 className="mb-0">Thông báo</h6>
           {unreadCount > 0 && (
-            <button 
-              className="btn btn-sm btn-link text-primary p-0"
-              onClick={markAllAsRead}
-              style={{ fontSize: '0.85rem' }}
-            >
-              Đánh dấu tất cả đã đọc
-            </button>
+        <button 
+          className="btn btn-sm btn-link text-primary p-0"
+          onClick={markAllAsRead}
+          style={{ fontSize: '0.85rem' }}
+        >
+          Đánh dấu tất cả đã đọc
+        </button>
           )}
         </div>
 
