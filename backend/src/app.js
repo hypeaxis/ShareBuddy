@@ -34,6 +34,7 @@ const ratingRoutes = require('./routes/ratingRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const feedRoutes = require('./routes/feedRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 // const socialRoutes = require('./routes/socialRoutes');
 // const adminRoutes = require('./routes/adminRoutes');
 
@@ -137,6 +138,7 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/webhooks', webhookRoutes);
 // app.use('/api/social', socialRoutes);
 // app.use('/api/admin', adminRoutes);
 
@@ -170,6 +172,7 @@ app.use('*', (req, res) => {
       '/api/feed',
       '/api/notifications',
       '/api/credits',
+      '/api/webhooks',
       '/api/social',
       '/api/admin',
       '/api/health'
