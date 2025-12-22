@@ -2,6 +2,30 @@
 
 All notable changes to ShareBuddy project will be documented in this file.
 
+## [1.6.5] - 2025-12-21
+
+### 🔔 Notification System Implementation
+
+### Fixed Notifications
+- Added comprehensive notification triggers across all major user actions
+- **webhookController.js**: Send notifications when documents are approved/rejected
+  - document_approved: "Tài liệu được duyệt"
+  - document_rejected: "Tài liệu bị từ chối"
+- **commentController.js**: Send notifications when new comments are created on documents
+  - new_comment: "Bình luận mới" notifies document author
+- **userController.js**: Send notifications when user is followed
+  - new_follower: "Người theo dõi mới" notifies the followed user
+- **questionController.js**: 
+  - NEW_QA_ANSWER notifications when answer is posted on a question
+  - ANSWER_ACCEPTED notifications when answer is accepted (+5 credits)
+  
+### Implementation Details
+- All controllers now properly import `notificationService`
+- Notifications created using `notificationService.createNotification()` with proper parameters
+- Includes related document/user IDs for context and linking
+- Non-blocking error handling: notification failures don't affect main operation
+- Comprehensive logging for debugging notification creation
+
 ## [1.6.4] - 2025-12-20
 
 ### 🎯 VerifiedAuthor, Settings Configure, Search-Vector, Thumbnails Modification

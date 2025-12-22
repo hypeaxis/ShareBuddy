@@ -6,6 +6,7 @@
 const { query, withTransaction } = require('../config/database');
 const fs = require('fs').promises;
 const path = require('path');
+const notificationService = require('../services/notificationService');
 
 /**
  * Webhook endpoint to receive moderation results
@@ -140,6 +141,20 @@ const receiveModerationResult = async (req, res, next) => {
           }
           
           console.log(`✓ Document approved and credit awarded for ${document_id}`);
+          
+          // Send notification to author
+          try {
+            await notificationService.createNotification(
+              documentInfo.author_id,
+              notificationService.NOTIFICATION_TYPES.DOCUMENT_APPROVED,
+              'Tài liệu được duyệt',
+              `Tài liệu "${documentInfo.title}" của bạn đã được phê duyệt và công khai`,
+              document_id
+            );
+            console.log(`✓ Notification sent to author ${documentInfo.author_id}`);
+          } catch (notifError) {
+            console.error(`⚠️ Failed to create notification for approved document:`, notifError.message);
+          }
         } else {
           // Document rejected - delete file
           try {
@@ -148,7 +163,20 @@ const receiveModerationResult = async (req, res, next) => {
           } catch (deleteError) {
             console.error(`⚠️ Failed to delete file for rejected document ${document_id}:`, deleteError.message);
           }
-        }
+          
+          // Send notification to author about rejection
+          try {
+            await notificationService.createNotification(
+              documentInfo.author_id,
+              notificationService.NOTIFICATION_TYPES.DOCUMENT_REJECTED,
+              'Tài liệu bị từ chối',
+              `Tài liệu "${documentInfo.title}" của bạn không đạt tiêu chuẩn cộng đồng và đã bị từ chối`,
+              document_id
+            );
+            console.log(`✓ Rejection notification sent to author ${documentInfo.author_id}`);
+          } catch (notifError) {
+            console.error(`⚠️ Failed to create rejection notification:`, notifError.message);
+          }
 
       } else if (moderation_status === 'failed') {
         // Update job as failed

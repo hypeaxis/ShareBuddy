@@ -4,6 +4,7 @@
 
 const { query, withTransaction } = require('../config/database');
 const { validationResult } = require('express-validator');
+const notificationService = require('../services/notificationService');
 
 // Get questions for a document
 const getQuestions = async (req, res, next) => {
@@ -288,6 +289,29 @@ const createAnswer = async (req, res, next) => {
       );
     }
 
+    // Send notification to question author about new answer
+    try {
+      const answererResult = await query(
+        'SELECT full_name FROM users WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (answererResult.rows.length > 0 && question.user_id !== userId) {
+        const answererName = answererResult.rows[0].full_name;
+        await notificationService.createNotification(
+          question.user_id,
+          notificationService.NOTIFICATION_TYPES.NEW_QA_ANSWER,
+          'Câu trả lời mới',
+          `${answererName} đã trả lời câu hỏi của bạn`,
+          null,
+          userId
+        );
+        console.log(`✓ New answer notification sent to question author ${question.user_id}`);
+      }
+    } catch (notifError) {
+      console.error(`⚠️ Failed to create new answer notification:`, notifError.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Câu trả lời đã được tạo thành công',
@@ -371,6 +395,29 @@ const acceptAnswer = async (req, res, next) => {
         [answer.user_id]
       );
     });
+
+    // Send notification to answer author about acceptance
+    try {
+      const answererResult = await query(
+        'SELECT full_name FROM users WHERE user_id = $1',
+        [answer.user_id]
+      );
+      
+      if (answererResult.rows.length > 0) {
+        const answererName = answererResult.rows[0].full_name;
+        await notificationService.createNotification(
+          answer.user_id,
+          notificationService.NOTIFICATION_TYPES.ANSWER_ACCEPTED,
+          'Câu trả lời được chấp nhận',
+          `Câu trả lời của bạn đã được chấp nhận! Bạn nhận được +5 credits`,
+          null,
+          userId
+        );
+        console.log(`✓ Answer acceptance notification sent to user ${answer.user_id}`);
+      }
+    } catch (notifError) {
+      console.error(`⚠️ Failed to create answer acceptance notification:`, notifError.message);
+    }
 
     res.json({
       success: true,

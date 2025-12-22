@@ -6,6 +6,7 @@
 
 const { validationResult } = require('express-validator');
 const { query, withTransaction } = require('../config/database');
+const notificationService = require('../services/notificationService');
 
 // Create a new comment on a document
 const createComment = async (req, res, next) => {
@@ -60,6 +61,32 @@ const createComment = async (req, res, next) => {
       [userId]
     );
     const user = userResult.rows[0];
+
+    // Send notification to document author about new comment
+    try {
+      const docOwnerResult = await query(
+        'SELECT author_id, title FROM documents WHERE document_id = $1',
+        [documentId]
+      );
+      
+      if (docOwnerResult.rows.length > 0) {
+        const { author_id, title } = docOwnerResult.rows[0];
+        // Only notify if comment is not from the document author
+        if (author_id !== userId) {
+          await notificationService.createNotification(
+            author_id,
+            notificationService.NOTIFICATION_TYPES.NEW_COMMENT,
+            'Bình luận mới',
+            `${user.full_name} đã bình luận trên tài liệu "${title}"`,
+            documentId,
+            userId
+          );
+          console.log(`✓ Comment notification sent to document author ${author_id}`);
+        }
+      }
+    } catch (notifError) {
+      console.error(`⚠️ Failed to create comment notification:`, notifError.message);
+    }
 
     res.status(201).json({
       success: true,

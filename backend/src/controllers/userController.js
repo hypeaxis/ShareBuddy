@@ -6,6 +6,7 @@
 const { validationResult } = require('express-validator');
 const { query, withTransaction } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const notificationService = require('../services/notificationService');
 
 // Get user profile by ID
 const getProfile = async (req, res, next) => {
@@ -235,6 +236,29 @@ const followUser = async (req, res, next) => {
       'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2)',
       [followerId, id]
     );
+
+    // Send notification to the followed user
+    try {
+      const followerResult = await query(
+        'SELECT full_name FROM users WHERE user_id = $1',
+        [followerId]
+      );
+      
+      if (followerResult.rows.length > 0) {
+        const followerName = followerResult.rows[0].full_name;
+        await notificationService.createNotification(
+          id,
+          notificationService.NOTIFICATION_TYPES.NEW_FOLLOWER,
+          'Người theo dõi mới',
+          `${followerName} đã bắt đầu theo dõi bạn`,
+          null,
+          followerId
+        );
+        console.log(`✓ Follower notification sent to user ${id}`);
+      }
+    } catch (notifError) {
+      console.error(`⚠️ Failed to create follower notification:`, notifError.message);
+    }
 
     res.json({
       success: true,

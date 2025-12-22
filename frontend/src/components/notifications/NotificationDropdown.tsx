@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Dropdown, Badge, ListGroup, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import apiClient from '../../services/api';
-import './NotificationDropdown.css';
+import '../../styles/NotificationDropdown.css';
 
 interface Notification {
   notification_id: string;
