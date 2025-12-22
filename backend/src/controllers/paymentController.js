@@ -114,9 +114,7 @@ const handleWebhook = async (req, res, next) => {
 
     try {
       // Verify webhook signature
-      const rawBody = req.body;
-      event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-      console.log('🔔 Stripe event:', event.type);
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
       return res.status(400).json({
@@ -125,8 +123,15 @@ const handleWebhook = async (req, res, next) => {
       });
     }
 
-    // Handle the event
-    await paymentService.handleWebhook(event);
+    console.log(`🔔 Webhook received: ${event.type} | ID: ${event.id}`);
+
+    try {
+        await paymentService.handleWebhook(event);
+    } catch (serviceError) {
+        console.error('❌ Error processing webhook logic:', serviceError);
+        throw serviceError;
+    }
+    
     return res.status(200).json({ received: true });
     
   } catch (error) {

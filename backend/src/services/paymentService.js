@@ -363,13 +363,46 @@ const getPaymentHistory = async (userId, page = 1, limit = 10) => {
 // Verify payment status
 const verifyPayment = async (paymentIntentId) => {
   try {
+    // 1. Kiểm tra trạng thái trong DB trước (nhanh nhất)
+    const dbResult = await query(
+      'SELECT payment_status FROM payment_transactions WHERE stripe_payment_intent_id = $1',
+      [paymentIntentId]
+    );
+
+    if (dbResult.rows.length > 0) {
+      const status = dbResult.rows[0].payment_status;
+      // Nếu DB đã báo thành công, trả về ngay (Client verify lần 2, 3...)
+      if (status === 'succeeded') {
+        return { status: 'succeeded', source: 'database' };
+      }
+    }
+
+    // 2. Nếu DB chưa cập nhật (pending) hoặc chưa có, hỏi Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
+    // 3. Nếu Stripe báo thành công, nhưng DB vẫn chưa (Webhook trễ hoặc lỗi)
+    if (paymentIntent.status === 'succeeded') {
+      console.log(`⚠️ Client verified success but DB is pending. Syncing now... ID: ${paymentIntentId}`);
+      
+      // GỌI HÀM NÀY ĐỂ XỬ LÝ: Nó sẽ dùng FOR UPDATE để tránh xung đột với Webhook
+      const syncResult = await handlePaymentSuccess(paymentIntent);
+      
+      return {
+        status: 'succeeded',
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        synced: true,
+        ...syncResult
+      };
+    }
+
+    // 4. Trường hợp chưa thanh toán xong (pending/failed)
     return {
       status: paymentIntent.status,
       amount: paymentIntent.amount / 100,
       currency: paymentIntent.currency
     };
+
   } catch (error) {
     console.error('Error verifying payment:', error);
     throw error;
