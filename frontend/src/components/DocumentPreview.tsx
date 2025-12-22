@@ -78,6 +78,32 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ documentId }) => {
               </Alert>
             }
           >
+            {/* Pagination Controls */}
+            {numPages && (
+              <div className="border-top p-2 d-flex justify-content-between align-items-center">
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm" 
+                  disabled={pageNumber <= 1} 
+                  onClick={() => setPageNumber(p => p - 1)}
+                >
+                  <i className="bi bi-chevron-left" />
+                </Button>
+                
+                <span className="small text-muted fw-bold">
+                  Trang {pageNumber} / {numPages}
+                </span>
+                
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm" 
+                  disabled={pageNumber >= numPages} 
+                  onClick={() => setPageNumber(p => p + 1)}
+                >
+                  <i className="bi bi-chevron-right" />
+                </Button>
+              </div>
+            )}
             {/* Render current page */}
             <Page 
               pageNumber={pageNumber} 
@@ -88,33 +114,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ documentId }) => {
             />
           </Document>
         </div>
-
-        {/* Pagination Controls */}
-        {numPages && (
-          <div className="border-top p-2 d-flex justify-content-between align-items-center">
-            <Button 
-              variant="outline-secondary" 
-              size="sm" 
-              disabled={pageNumber <= 1} 
-              onClick={() => setPageNumber(p => p - 1)}
-            >
-              <i className="bi bi-chevron-left" />
-            </Button>
-            
-            <span className="small text-muted fw-bold">
-              Trang {pageNumber} / {numPages}
-            </span>
-            
-            <Button 
-              variant="outline-secondary" 
-              size="sm" 
-              disabled={pageNumber >= numPages} 
-              onClick={() => setPageNumber(p => p + 1)}
-            >
-              <i className="bi bi-chevron-right" />
-            </Button>
-          </div>
-        )}
       </div>
     );
   }
