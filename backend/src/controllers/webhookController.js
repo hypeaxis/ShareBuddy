@@ -52,6 +52,7 @@ const receiveModerationResult = async (req, res, next) => {
     let transactionSuccess = false;
     let creditAwarded = false;
     let errorDetails = null;
+    let documentInfo = null; // Store document info for use after transaction
 
     // Update moderation_jobs table and award credits
     try {

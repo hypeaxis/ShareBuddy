@@ -3,7 +3,7 @@
  * Supports both in-app notifications and email notifications based on user preferences
  */
 
-const pool = require('../config/database');
+const { pool } = require('../config/database');
 const emailService = require('./emailService');
 
 /**
@@ -16,11 +16,14 @@ const NOTIFICATION_TYPES = {
   NEW_QA_ANSWER: 'new_qa_answer',
   ANSWER_ACCEPTED: 'answer_accepted',
   NEW_FOLLOWER: 'new_follower',
-  PAYMENT_SUCCESS: 'payment_success',
+  PAYMENT_SUCCESSFUL: 'payment_successful',
   VERIFIED_AUTHOR_ACHIEVED: 'verified_author_achieved',
   VERIFIED_AUTHOR_APPLICATION_APPROVED: 'verified_author_approved',
   VERIFIED_AUTHOR_APPLICATION_REJECTED: 'verified_author_rejected'
 };
+
+// Export NOTIFICATION_TYPES early so it's available for import
+exports.NOTIFICATION_TYPES = NOTIFICATION_TYPES;
 
 /**
  * Create a new notification

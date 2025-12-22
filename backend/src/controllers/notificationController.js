@@ -179,3 +179,41 @@ exports.updatePreferences = async (req, res) => {
     });
   }
 };
+/**
+ * TEST ENDPOINT - Create a test notification
+ * POST /api/notifications/test
+ */
+exports.testCreateNotification = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { type = 'new_comment', title = 'Test Notification', content = 'This is a test notification', documentId = null } = req.body;
+    
+    console.log(`\n📋 TEST: Creating notification for user ${userId}`);
+    console.log(`   Type: ${type}`);
+    console.log(`   Title: ${title}`);
+    console.log(`   Content: ${content}`);
+    
+    const notification = await notificationService.createNotification(
+      userId,
+      type,
+      title,
+      content,
+      documentId
+    );
+    
+    console.log(`✅ TEST: Notification created successfully:`, notification);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Test notification created',
+      notification
+    });
+  } catch (error) {
+    console.error('❌ TEST: Error creating notification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create test notification',
+      error: error.message
+    });
+  }
+};

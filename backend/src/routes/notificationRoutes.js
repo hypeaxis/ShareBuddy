@@ -61,4 +61,11 @@ router.patch('/:id/read', notificationController.markAsRead);
  */
 router.delete('/:id', notificationController.deleteNotification);
 
+/**
+ * @route   POST /api/notifications/test
+ * @desc    Test endpoint to create a test notification
+ * @access  Protected
+ */
+router.post('/test', notificationController.testCreateNotification);
+
 module.exports = router;
