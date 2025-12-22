@@ -62,7 +62,7 @@ const CreditSummary: React.FC<{ creditPackage: CreditPackage; currency: 'usd' | 
   );
 };
 
-const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess: () => void; currency: 'usd' | 'vnd' }> = ({ 
+const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess: (paymentIntentId: string) => void; currency: 'usd' | 'vnd' }> = ({ 
   selectedPackage, 
   onSuccess,
   currency
@@ -105,7 +105,7 @@ const CheckoutForm: React.FC<{ selectedPackage: CreditPackage | null; onSuccess:
       if (result.error) {
         setError(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
-        onSuccess();
+        onSuccess(result.paymentIntent.id);
       } else {
         setError('Payment not completed. Please try again.');
       }
@@ -204,20 +204,28 @@ const PurchaseCreditsPage: React.FC = () => {
     }
   };
 
-  const handleSelectPackage = (pkg: CreditPackage) => {
-    setSelectedPackage(pkg);
-    setShowCheckout(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    setShowCheckout(false);
-    setSelectedPackage(null);
-    
-    // Refresh user data to update credits in Navbar
-    dispatch(getCurrentUser());
-    
-    alert('Payment successful! Your credits have been added.');
-    navigate('/profile');
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    try {
+      // Hiển thị loading nhẹ hoặc thông báo đang đồng bộ
+      
+      // GỌI API VERIFY NGAY LẬP TỨC
+      // API này sẽ kích hoạt logic "Force Sync" ở backend nếu webhook chưa tới kịp
+      await apiClient.get(`/payment/verify/${paymentIntentId}`);
+      
+      setShowCheckout(false);
+      setSelectedPackage(null);
+      
+      // Sau khi verify xong, chắc chắn DB đã update, lúc này mới fetch user
+      await dispatch(getCurrentUser());
+      
+      alert('Thanh toán thành công! Credits đã được cộng vào tài khoản của bạn.');
+      navigate('/profile');
+      
+    } catch (err) {
+      console.error('Verify failed but payment likely succeeded', err);
+      // Vẫn navigate về profile vì tiền đã trừ, user có thể refresh sau
+      navigate('/profile');
+    }
   };
 
   if (loading) {
