@@ -15,8 +15,7 @@ interface Transaction {
   amount: number;
   currency: string;
   credits_purchased: number;            
-  payment_status: string;               
-  payment_method?: string;
+  payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded';              
   error_message?: string;
   created_at: string;
 }
@@ -49,9 +48,10 @@ const PaymentHistoryPage: React.FC = () => {
         params: { page: currentPage, limit: 10 }
       });
 
-      if (response.data.success && response.data.data) {
-        setTransactions(response.data.data.transactions || []);
-        setTotalPages(response.data.data.pagination?.totalPages || 1);
+      if (response.data?.success && Array.isArray(response.data.data)) {
+        setTransactions(response.data.data);
+      } else {
+        setTransactions([]);
       }
     } catch (err: any) {
       console.error('Error fetching payment history:', err);
@@ -63,8 +63,8 @@ const PaymentHistoryPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <Badge bg="success">Completed</Badge>;
+      case 'succeeded':
+        return <Badge bg="success">Succeeded</Badge>;
       case 'pending':
         return <Badge bg="warning">Pending</Badge>;
       case 'failed':
@@ -88,10 +88,9 @@ const PaymentHistoryPage: React.FC = () => {
 
   const formatAmount = (amount: number, currency: string) => {
     if (currency === 'usd') {
-      return `$${(amount / 100).toFixed(2)}`;
-    } else {
-      return `${amount.toLocaleString('vi-VN')} VND`;
+      return `$${amount.toFixed(2)}`;
     }
+    return `${amount.toLocaleString('vi-VN')} VND`;
   };
 
   if (loading) {
@@ -148,7 +147,7 @@ const PaymentHistoryPage: React.FC = () => {
                   <td>{formatAmount(tx.amount, tx.currency)}</td>
                   <td>{getStatusBadge(tx.payment_status)}</td>
                   <td>
-                    <code className="small">{tx.payment_id.slice(0, 8)}...</code>
+                    <code className="small">{tx.payment_id?.slice(0, 8)}...</code>
                   </td>
                 </tr>
               ))}
