@@ -57,11 +57,4 @@ router.get('/history', protect, paymentController.getPaymentHistory);
  */
 router.get('/verify/:paymentIntentId', protect, paymentController.verifyPayment);
 
-/**
- * @route   POST /api/payments/webhook
- * @desc    Stripe webhook endpoint (raw body required)
- * @access  Public
- */
-router.post('/webhook', paymentController.handleWebhook);
-
 module.exports = router;

@@ -2,12 +2,12 @@
  * Sidebar Component for ShareBuddy
  */
 
-import React, { useEffect } from 'react';
-import { Nav, Button } from 'react-bootstrap';
+import React from 'react';
+import { Nav } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { useAuth } from '../../hooks/useAuth';
-import { toggleSidebar } from '../../store/slices/uiSlice';
+import { setSidebarOpen } from '../../store/slices/uiSlice';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -19,8 +19,24 @@ const Sidebar: React.FC = () => {
     return location.pathname === path;
   };
 
+  const closeSidebar = () => {
+   dispatch(setSidebarOpen(false));
+  };
+
   return (
-    <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+    <>
+      {/* ✅ Overlay – click outside sidebar to close */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={closeSidebar}
+        />
+      )}
+
+    <div 
+      className={`sidebar ${sidebarOpen ? 'open' : ''}`} 
+      onClick={(e) => e.stopPropagation()}
+    >
       <Nav className="flex-column p-3">
         {/* Public Navigation */}
         <Nav.Item>
@@ -28,6 +44,7 @@ const Sidebar: React.FC = () => {
             as={Link}
             to="/"
             className={isActive('/') ? 'active' : ''}
+            onClick={closeSidebar}
           >
             <i className="bi bi-house me-2"></i>
             My Feed
@@ -39,6 +56,7 @@ const Sidebar: React.FC = () => {
             as={Link}
             to="/documents"
             className={isActive('/documents') ? 'active' : ''}
+            onClick={closeSidebar}
           >
             <i className="bi bi-file-text me-2"></i>
             Tài liệu
@@ -53,6 +71,7 @@ const Sidebar: React.FC = () => {
                 as={Link}
                 to="/bookmarked"
                 className={isActive('/bookmarked') ? 'active' : ''}
+                onClick={closeSidebar}
               >
                 <i className="bi bi-bookmark-fill me-2"></i>
                 Đã lưu
@@ -65,6 +84,7 @@ const Sidebar: React.FC = () => {
                   as={Link}
                   to="/verified-author-progress"
                   className={isActive('/verified-author-progress') ? 'active' : ''}
+                  onClick={closeSidebar}
                 >
                   <i className="bi bi-award me-2"></i>
                   Verified Author
@@ -83,6 +103,7 @@ const Sidebar: React.FC = () => {
                 as={Link}
                 to="/payment-history"
                 className={isActive('/payment-history') ? 'active' : ''}
+                onClick={closeSidebar}
               >
                 <i className="bi bi-receipt me-2"></i>
                 Đơn hàng của tôi
@@ -93,6 +114,7 @@ const Sidebar: React.FC = () => {
                 as={Link}
                 to="/purchase-credits"
                 className={`purchase-credits-link ${isActive('/purchase-credits') ? 'active' : ''}`}
+                onClick={closeSidebar}
               >
                 <div className="d-flex align-items-left justify-content-left py-1 px-1">
                   <i className="bi bi-coin fs-6 me-2" style={{ color: '#271504ff' }}></i>
@@ -104,6 +126,7 @@ const Sidebar: React.FC = () => {
         )}
       </Nav>
     </div>
+    </>
   );
 };
 

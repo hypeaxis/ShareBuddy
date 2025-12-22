@@ -247,7 +247,7 @@ const handlePaymentFailure = async (paymentIntent) => {
     if (userResult.rows.length > 0) {
       // Create notification
       await query(
-        `INSERT INTO notifications (user_id, type, title, message)
+        `INSERT INTO notifications (user_id, type, title, content)
          VALUES ($1, $2, $3, $4)`,
         [
           userResult.rows[0].user_id,

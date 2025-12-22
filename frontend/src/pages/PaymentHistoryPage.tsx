@@ -10,13 +10,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 interface Transaction {
-  transaction_id: string;
-  package_id: string;
-  credits: number;
+  payment_id: string;                    
+  stripe_payment_intent_id: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  stripe_payment_intent_id: string;
+  credits_purchased: number;            
+  payment_status: string;               
+  payment_method?: string;
+  error_message?: string;
   created_at: string;
 }
 
@@ -141,13 +142,13 @@ const PaymentHistoryPage: React.FC = () => {
             </thead>
             <tbody>
               {transactions.map((tx) => (
-                <tr key={tx.transaction_id}>
+                <tr key={tx.payment_id}>
                   <td>{formatDate(tx.created_at)}</td>
-                  <td className="text-primary fw-bold">+{tx.credits} credits</td>
+                  <td className="text-primary fw-bold">+{tx.credits_purchased} credits</td>
                   <td>{formatAmount(tx.amount, tx.currency)}</td>
-                  <td>{getStatusBadge(tx.status)}</td>
+                  <td>{getStatusBadge(tx.payment_status)}</td>
                   <td>
-                    <code className="small">{tx.transaction_id.slice(0, 8)}...</code>
+                    <code className="small">{tx.payment_id.slice(0, 8)}...</code>
                   </td>
                 </tr>
               ))}
