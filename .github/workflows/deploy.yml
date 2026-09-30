@@ -1,0 +1,34 @@
+name: Deploy ShareBuddy Optimized
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: Production
+    
+    env:
+      COMPOSE_PROJECT_NAME: sharebuddy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.PROD_ENV }}" > .env
+
+      - name: Build and Deploy
+        run: |
+          echo "1️⃣ Building new images (Background)..." 
+          # Web vẫn online trong lúc này
+          docker compose build
+
+          echo "2️⃣ Rolling Update..."
+          # Web chỉ restart trong vài giây ở bước này
+          docker compose up -d --remove-orphans
+
+      - name: Cleanup
+        run: docker image prune -f
